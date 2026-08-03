@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="7th Heaven - A slice of happiness. Experience premium cafe vibes and delicious food in a warm, inviting atmosphere.">
+    <title>7th Heaven | A slice of happiness</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Script -->
+    <script src="backend-mock.js" defer></script>
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">7th Heaven.</a>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">Our Story</a></li>
+                <li><a href="#menu">Menu</a></li>
+                <li><a href="#contact">Visit Us</a></li>
+            </ul>
+            <div class="nav-actions">
+                <span class="nav-icon" id="user-icon">👤 <span id="user-name-display"></span></span>
+                <span class="nav-icon" id="cart-icon">🛒 <span id="cart-count">0</span></span>
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header id="home" class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content fade-in-up">
+            <h1>Crafted Concurrently,<br>Brewed Perfectly.</h1>
+            <p>Experience the art of authentic coffee in every pour.</p>
+            <a href="#menu" class="cta-button">View Our Menu</a>
+        </div>
+    </header>
+
+    <!-- About Section -->
+    <section id="about" class="about section">
+        <div class="container about-content">
+            <div class="about-text fade-in-left">
+                <h2>The Art of the Bean</h2>
+                <div class="underline"></div>
+                <p>At 7th Heaven, we believe coffee and food are more than just a routine; they are an experience. We source the finest ingredients and meticulously prepare them to perfection in-house, bringing you a slice of happiness.</p>
+                <p>Every cup is a symphony of rich, complex flavors, crafted by passionate baristas who dedicate themselves to the perfect pour.</p>
+                <a href="#contact" class="secondary-button">Visit Our Roastery</a>
+            </div>
+            <div class="about-image-container fade-in-right">
+                <img src="assets/pourover_1775704620711.png" alt="Pour over coffee preparation" class="about-image floating">
+            </div>
+        </div>
+    </section>
+
+    <!-- Menu Section -->
+    <section id="menu" class="menu section">
+        <div class="container">
+            <div class="section-title fade-in-up">
+                <h2>Featured Selection</h2>
+                <div class="underline center"></div>
+                <p>A taste of our signature offerings, crafted with care.</p>
+            </div>
+            
+            <div class="full-menu-grid">
+                <div class="menu-category fade-in-up" data-delay="50">
+                    <h3>Refreshers</h3>
+                    <ul class="menu-list">
+                        <li>Mint Mojito</li>
+                        <li>Coke Float</li>
+                        <li>Lemon Iced Tea</li>
+                        <li>Peach Iced Tea</li>
+                        <li>Passion Fruit Iced Tea</li>
+                        <li>Strawberry Iced Tea</li>
+                        <li>Blueberry Iced Tea</li>
+                    </ul>
+                </div>
+
+                <div class="menu-category fade-in-up" data-delay="100">
+                    <h3>Hot Coffee</h3>
+                    <ul class="menu-list">
+                        <li>Cappuccino</li>
+                        <li>Cafe Latte</li>
+                        <li>Flat White</li>
+                        <li>Cafe Mocha</li>
+                        <li>Caramel Flan Latte</li>
+                        <li>Roasted Hazelnut</li>
+                        <li>Cinnamon & Ginger Bread Coffee</li>
+                    </ul>
+                </div>
+
+                <div class="menu-category fade-in-up" data-delay="150">
+                    <h3>Cold Coffee</h3>
+                    <ul class="menu-list">
+                        <li>Tiramisu</li>
+                        <li>Turkish Delight</li>
+                        <li>Irish Cafe And Hazelnut</li>
+                        <li>Cold Coffee With Ice Cream</li>
+                        <li>Cold Coffee Frappe</li>
+                        <li>Toffee Nut Frappe</li>
+                        <li>Chocolate Frappe</li>
+                    </ul>
+                </div>
+
+                <div class="menu-category fade-in-up" data-delay="200">
+                    <h3>Milkshake</h3>
+                    <ul class="menu-list">
+                        <li>Blueberry & Lavender</li>
+                        <li>Strawberry Bubblegum</li>
+                        <li>Popcorn Caramel</li>
+                        <li>Mango</li>
+                        <li>Butterscotch</li>
+                        <li>Mint & Oreo</li>
+                        <li>Kitkat Shake</li>
+                        <li>Death By Chocolate</li>
+                        <li>Parle G Shake</li>
+                        <li>Kulfi</li>
+                    </ul>
+                </div>
+
+                <div class="menu-category fade-in-up" data-delay="250">
+                    <h3>Cupcake Milkshake</h3>
+                    <ul class="menu-list">
+                        <li>Hazelnut Cupcake Milkshake</li>
+                        <li>Chocolate Cupcake Milkshake</li>
+                        <li>Red Velvet Cupcake Milkshake</li>
+                        <li>Vanilla Cupcake Milkshake</li>
+                        <li>Oreo Cupcake Milkshake</li>
+                    </ul>
+                </div>
+
+                <div class="menu-category fade-in-up" data-delay="300">
+                    <h3>Mug Cakes</h3>
+                    <ul class="menu-list">
+                        <li>Whippedcream & Chocolate Syrup</li>
+                        <li>Choco Chip & Truffle</li>
+                        <li>Salted Caramel & Milk Truffle</li>
+                        <li>Strawberry Cheese Cream</li>
+                        <li>Black Forest</li>
+                        <li>White Chocolate Fantasy</li>
+                        <li>Cookies And Cream</li>
+                        <li>Mug Cake With Ice Cream</li>
+                        <li>Nutella Overload</li>
+                    </ul>
+                </div>
+
+                <div class="menu-category fade-in-up" data-delay="350">
+                    <h3>Desserts</h3>
+                    <ul class="menu-list">
+                        <li>Cakes Starting</li>
+                        <li>Photo Cake</li>
+                        <li>Shape Cake</li>
+                        <li>3D Custom Cake</li>
+                        <li>Cup Cakes</li>
+                        <li>Pastry</li>
+                        <li>Donut (Buy 5 Get 1 Free)</li>
+                        <li>Muffin</li>
+                        <li>Cheese Cake</li>
+                        <li>Brownie</li>
+                        <li>Chocolate Pizza</li>
+                        <li>Macarons</li>
+                        <li>Tart</li>
+                        <li>Well Cake</li>
+                        <li>Lava Cake</li>
+                        <li>Edible Mousse Cup</li>
+                    </ul>
+                </div>
+
+                <div class="menu-category fade-in-up" data-delay="400">
+                    <h3>Burgers</h3>
+                    <ul class="menu-list">
+                        <li>Veggie Burger With French Fries</li>
+                        <li>Potato Cheese Blast Burger With French Fries</li>
+                        <li>Double Patty Mega Burger With French Fries</li>
+                    </ul>
+                </div>
+
+                <div class="menu-category fade-in-up" data-delay="450">
+                    <h3>Pizza</h3>
+                    <ul class="menu-list">
+                        <li>Margarita Pizza</li>
+                        <li>Veggie Lover Pizza</li>
+                        <li>Indo Masala Paneer Pizza</li>
+                        <li>Mamamia Italian Pizza</li>
+                        <li>Hawain Pizza</li>
+                    </ul>
+                </div>
+
+                <div class="menu-category fade-in-up" data-delay="500">
+                    <h3>Pasta</h3>
+                    <ul class="menu-list">
+                        <li>Arabiatta Pasta</li>
+                        <li>Alfredo Pasta</li>
+                        <li>Tomato Cream Pasta (Combination Of Tomato Sauce & Cheese Sauce)</li>
+                    </ul>
+                </div>
+
+                <div class="menu-category fade-in-up" data-delay="550">
+                    <h3>Sides & Starters</h3>
+                    <ul class="menu-list">
+                        <li>Garlic Bread</li>
+                        <li>Garlic Bread With Cheese</li>
+                        <li>Open Italian Cheese Toast</li>
+                        <li>Tomato Caper Bruschetta</li>
+                        <li>Cheese Corn Balls</li>
+                        <li>Hot Cheesy Vegetable Logs</li>
+                        <li>Cheesy French Fries And Wedges Duo</li>
+                        <li>Classic Salted French Fries</li>
+                        <li>Herbed Potato Wedges</li>
+                        <li>Nachos With Cheese</li>
+                        <li>Kung Pao Potatoes</li>
+                        <li>Barbecue Paneer Satay</li>
+                        <li>Indo Chinese Paneer Chilly</li>
+                        <li>Manchurian</li>
+                    </ul>
+                </div>
+
+                <div class="menu-category fade-in-up" data-delay="600">
+                    <h3>Soups</h3>
+                    <ul class="menu-list">
+                        <li>Cream Of Tomato</li>
+                        <li>Manchow</li>
+                        <li>Sweet Corn</li>
+                    </ul>
+                </div>
+
+                <div class="menu-category fade-in-up" data-delay="650">
+                    <h3>Veg. Hotdog</h3>
+                    <ul class="menu-list">
+                        <li>Saucy Veg Hot Dog</li>
+                        <li>Paneer Hot Dog</li>
+                        <li>Mushroom Hot Dog</li>
+                    </ul>
+                </div>
+
+                <div class="menu-category fade-in-up" data-delay="700">
+                    <h3>Between The Breads</h3>
+                    <ul class="menu-list">
+                        <li>Vegetable Cheese Grilled Sandwich</li>
+                        <li>Mumbai Se Aya Mera Toast</li>
+                        <li>Cheese And Chilly Toast</li>
+                        <li>Heavenly Nutella Toast</li>
+                        <li>Spicy BBQ Sandwich</li>
+                        <li>Paneer Toast</li>
+                        <li>Pizza Sandwich</li>
+                    </ul>
+                </div>
+
+                <div class="menu-category fade-in-up" data-delay="750">
+                    <h3>Main Course</h3>
+                    <ul class="menu-list">
+                        <li>Fried Rice</li>
+                        <li>Hakka Noodles</li>
+                        <li>Manchurian In Gravy</li>
+                        <li>Paneer Chilly In Gravy</li>
+                    </ul>
+                </div>
+
+                <div class="menu-category fade-in-up" data-delay="800">
+                    <h3>Some Wholesome Meals</h3>
+                    <ul class="menu-list">
+                        <li>Chinese Sizzler (Starter, Hakka Noodles, Fried Rice & Gravy All On Sizzling Hot Plate)</li>
+                        <li>A Hot Mess (Szechwan Fried Rice Topped With Manchurian Gravy)</li>
+                        <li>Tangy Pan Fried Noodles</li>
+                        <li>Paneer Butter Garlic Melt Combo (Choose Rice/Noodles With Gravy)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer / Contact Section -->
+    <footer id="contact" class="footer">
+        <div class="container footer-content fade-in-up">
+            <div class="footer-section brand">
+                <h2>7th Heaven.</h2>
+                <p>Lighting up your day, one cup at a time.</p>
+                <div class="socials">
+                    <span class="social-icon">IG</span>
+                    <span class="social-icon">FB</span>
+                    <span class="social-icon">TW</span>
+                </div>
+            </div>
+            <div class="footer-section hours">
+                <h3>Opening Hours</h3>
+                <p>Mon - Fri: 7:00 AM - 5:00 PM</p>
+                <p>Sat - Sun: 8:00 AM - 6:00 PM</p>
+            </div>
+            <div class="footer-section location">
+                <h3>Visit Us</h3>
+                <p>Tendulkar Building, 2/561 A, DP Rd</p>
+                <p>Beside of SS Mobiles</p>
+                <p>Kankavli, Maharashtra 416602</p>
+                <p>Phone: 093229 41144</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 7th Heaven. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Cart Drawer -->
+    <div class="cart-drawer" id="cart-drawer">
+        <div class="cart-header">
+            <h3>Your Order</h3>
+            <button id="close-cart" class="close-btn">&times;</button>
+        </div>
+        <div class="cart-items" id="cart-items">
+            <!-- Items injected by JS -->
+        </div>
+        <div class="cart-footer">
+            <button id="checkout-btn" class="cta-button full-width" disabled>Place Order (Real-time)</button>
+        </div>
+    </div>
+    <div class="cart-overlay" id="cart-overlay"></div>
+
+    <!-- Login Modal -->
+    <div class="modal" id="login-modal">
+        <div class="modal-content">
+            <span class="close-modal" id="close-login">&times;</span>
+            <h2>Welcome Back</h2>
+            <form id="login-form">
+                <input type="email" id="login-email" placeholder="Email" required>
+                <input type="password" id="login-password" placeholder="Password" required>
+                <button type="submit" class="cta-button full-width">Login</button>
+            </form>
+            <div id="login-status"></div>
+        </div>
+    </div>
+
+    <!-- Delivery Tracker Modal -->
+    <div class="modal" id="tracker-modal">
+        <div class="modal-content tracker-content">
+            <span class="close-modal" id="close-tracker">&times;</span>
+            <h2>Real-time Order Tracker</h2>
+            <p id="tracker-order-id"></p>
+            <div class="tracker-progress-bg">
+                <div class="tracker-progress-fill" id="tracker-fill"></div>
+            </div>
+            <p id="tracker-status-text" class="status-pulse">Waiting for restaurant...</p>
+        </div>
+    </div>
+
+    <!-- Profile Drawer -->
+    <div class="cart-drawer profile-drawer" id="profile-drawer">
+        <div class="cart-header">
+            <h3>My Profile</h3>
+            <button id="close-profile" class="close-btn">&times;</button>
+        </div>
+        
+        <div class="profile-tabs">
+            <button class="tab-btn active" data-tab="details">Details</button>
+            <button class="tab-btn" data-tab="orders">Order History</button>
+        </div>
+
+        <div class="cart-items profile-content">
+            <div id="tab-details" class="tab-pane active">
+                <div class="profile-avatar-wrapper">
+                    <img id="profile-avatar-img" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Avatar">
+                    <label for="photo-upload" class="photo-upload-label">✎ Edit Photo</label>
+                    <input type="file" id="photo-upload" accept="image/*" hidden>
+                </div>
+
+                <form id="profile-form">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" id="profile-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Age</label>
+                        <input type="number" id="profile-age" min="1" max="120">
+                    </div>
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <select id="profile-gender">
+                            <option value="">Select...</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Address</label>
+                        <textarea id="profile-address" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="cta-button full-width" style="margin-top: 1rem;">Save Setup</button>
+                    <div id="profile-status" style="margin-top: 0.5rem; text-align:center; font-weight:bold; color:var(--color-primary)"></div>
+                </form>
+            </div>
+
+            <div id="tab-orders" class="tab-pane">
+                <div id="order-history-list">
+                    <p style="text-align:center; color:#999; margin-top: 2rem;">No previous orders found.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="cart-footer">
+            <button id="logout-btn" class="cta-button full-width" style="background:#d9534f; box-shadow:none;">Log Out</button>
+        </div>
+    </div>
+</body>
+</html>
