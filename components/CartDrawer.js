@@ -6,10 +6,18 @@ import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Trash2, FileText, ArrowRight, ArrowLeft, Ticket, Receipt, Info, ChevronRight, CheckCircle2, Circle, Plus, Scan, ChevronDown, MapPin, User, Zap, Archive, CreditCard } from 'lucide-react';
 import InvoiceModal from './InvoiceModal';
+import { OrderConfirmationCard } from './order-confirmation-card';
 
 export default function CartDrawer() {
   const { cartItems, isCartOpen, setIsCartOpen, toggleLogin, clearCart, updateQuantity } = useCart();
   const { user, profile } = useAuth();
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR'
+    }).format(amount);
+  };
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
@@ -312,10 +320,10 @@ export default function CartDrawer() {
                           <span style={{ fontSize: '10px', fontWeight: 800, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Vegetarian</span>
                         </div>
                         <h4 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.25rem', fontWeight: 900, color: '#3B2E28', margin: '0 0 0.5rem 0' }}>{item.name}</h4>
-                        <p style={{ fontSize: '12px', fontWeight: 700, color: '#A69991', textTransform: 'uppercase', margin: 0 }}>Price: â‚¹{item.price || 5}</p>
+                        <p style={{ fontSize: '12px', fontWeight: 700, color: '#A69991', textTransform: 'uppercase', margin: 0 }}>Price: {formatCurrency(item.price || 5)}</p>
                       </div>
                       <p style={{ fontFamily: 'var(--font-heading)', fontSize: '1.25rem', fontWeight: 900, color: '#3B2E28', margin: 0, flexShrink: 0 }}>
-                        â‚¹{((item.price || 5) * item.qty).toFixed(2)}
+                        {formatCurrency((item.price || 5) * item.qty)}
                       </p>
                     </div>
 
@@ -384,13 +392,13 @@ export default function CartDrawer() {
                   <tbody>
                     <tr style={styles.billRow}>
                       <td style={styles.label}>Item Total</td>
-                      <td style={styles.value}>â‚¹{itemTotal.toFixed(2)}</td>
+                      <td style={styles.value}>{formatCurrency(itemTotal)}</td>
                     </tr>
                     <tr style={styles.billRow}>
                       <td style={styles.label}>
                         Taxes (GST 5%) <Info size={14} className="inline ml-1 opacity-40 hover:opacity-100 cursor-help" />
                       </td>
-                      <td style={styles.value}>â‚¹{tax.toFixed(2)}</td>
+                      <td style={styles.value}>{formatCurrency(tax)}</td>
                     </tr>
                     <tr style={{ ...styles.billRow, backgroundColor: '#FAFDFB' }}>
                       <td style={{ ...styles.label, paddingLeft: '1rem', color: '#16a34a', fontWeight: 800 }}>Delivery Fee</td>
@@ -405,43 +413,139 @@ export default function CartDrawer() {
           <div style={{ height: '12rem', flexShrink: 0 }}></div> {/* Buffer for fixed footer */}
         </div>
 
-        {/* Fixed Footer */}
+        {/* Fixed Footer — Zomato-style dark bar */}
         {cartItems.length > 0 && (
-          <div style={styles.footer}>
-            <div className="flex items-center justify-between gap-4">
-              <div style={{ flexShrink: 0 }}>
-                <p style={{ margin: 0, fontSize: '11px', fontWeight: 800, color: '#8C6A53', textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: '0.25rem', opacity: 0.6 }}>To Pay</p>
-                <h4 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.75rem', fontWeight: 900, color: '#3B2E28', margin: 0, letterSpacing: '-0.02em' }}>
-                  â‚¹{totalToPay.toFixed(2)}
-                </h4>
-              </div>
-              <button
-                onClick={handleCheckoutClick}
-                disabled={isProcessing}
-                style={{
-                  backgroundColor: '#8C6A53',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '1.5rem',
-                  padding: '16px 24px',
-                  fontSize: '14px',
-                  fontWeight: 800,
-                  fontFamily: 'var(--font-heading)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.1em',
-                  cursor: isProcessing ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 10px 20px rgba(140, 106, 83, 0.4)',
-                  flexShrink: 0
-                }}
-                className="hover:bg-[#6B4E3B] hover:-translate-y-1 active:translate-y-0 transition-all"
-              >
-                {isProcessing ? 'Wait...' : 'Place Order'}
-              </button>
+          <div style={{
+            backgroundColor: '#1C1410',
+            padding: '14px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+            flexShrink: 0,
+            borderTop: '1px solid rgba(255,255,255,0.06)',
+          }}>
 
+            {/* LEFT — plain text on dark bar, no background container */}
+            <div
+              onClick={() => setShowPayment(true)}
+              style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}
+            >
+              <p style={{
+                margin: '0 0 2px 0',
+                fontSize: '10px',
+                fontWeight: 700,
+                color: '#8A7A72',
+                textTransform: 'uppercase',
+                letterSpacing: '0.15em',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}>
+                <CreditCard size={10} strokeWidth={2} />
+                PAY USING
+                <ChevronDown size={10} strokeWidth={2.5} style={{ transform: 'rotate(180deg)' }} />
+              </p>
+              <p style={{
+                margin: '0 0 1px 0',
+                fontFamily: 'var(--font-heading)',
+                fontSize: '15px',
+                fontWeight: 900,
+                color: '#F5EFEB',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}>
+                {paymentMethod === 'Cash on Delivery' ? 'Cash on delivery' : paymentMethod}
+              </p>
+              <p style={{
+                margin: 0,
+                fontSize: '11px',
+                color: '#5C4840',
+                fontWeight: 500,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}>
+                {paymentMethod === 'Cash on Delivery'
+                  ? 'Pay using cash or ask for QR'
+                  : paymentMethod === 'UPI'
+                  ? 'Instant transfer via UPI'
+                  : paymentMethod === 'Net Banking'
+                  ? 'Secure net banking transfer'
+                  : 'Pay securely with your card'}
+              </p>
             </div>
 
-          </div>
+            {/* RIGHT — separate rounded pill button, floating in the bar */}
+            <button
+              onClick={handleCheckoutClick}
+              disabled={isProcessing}
+              style={{
+                appearance: 'none',
+                WebkitAppearance: 'none',
+                border: 'none',
+                outline: 'none',
+                margin: 0,
+                flexShrink: 0,
+                borderRadius: '9999px',
+                backgroundColor: '#8B6F52',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '10px 18px 10px 16px',
+                cursor: isProcessing ? 'not-allowed' : 'pointer',
+                opacity: isProcessing ? 0.7 : 1,
+                transition: 'background-color 0.18s ease, transform 0.12s ease',
+                boxShadow: '0 4px 20px rgba(139,111,82,0.45)',
+              }}
+              onMouseEnter={e => { if (!isProcessing) { e.currentTarget.style.backgroundColor = '#6B4E3B'; e.currentTarget.style.transform = 'scale(1.02)'; } }}
+              onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#8B6F52'; e.currentTarget.style.transform = 'scale(1)'; }}
+            >
+              {/* Amount + TOTAL stacked */}
+              <div style={{ textAlign: 'left' }}>
+                <p style={{
+                  margin: 0,
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: '18px',
+                  fontWeight: 900,
+                  color: '#fff',
+                  lineHeight: 1,
+                  letterSpacing: '-0.01em',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {formatCurrency(totalToPay)}
+                </p>
+                <p style={{
+                  margin: '2px 0 0 0',
+                  fontSize: '9px',
+                  fontWeight: 800,
+                  color: 'rgba(255,255,255,0.55)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.18em',
+                }}>
+                  TOTAL
+                </p>
+              </div>
 
+              {/* "Place Order ►" */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <span style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: '14px',
+                  fontWeight: 900,
+                  color: '#fff',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {isProcessing ? 'Wait…' : 'Place Order'}
+                </span>
+                {!isProcessing && <ArrowRight size={15} color="#fff" strokeWidth={2.5} />}
+              </div>
+            </button>
+
+          </div>
         )}
 
       </div>
@@ -666,32 +770,20 @@ export default function CartDrawer() {
         </div>
       )}
 
-      {orderCompleteMsg && (
-
-        <div className="fixed inset-0 z-[3000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-8">
-
-          <div style={{ backgroundColor: '#fff', width: '100%', maxWidth: '450px', borderRadius: '5rem', padding: '5rem', textAlign: 'center', boxShadow: '0 60px 150px rgba(0,0,0,0.8)' }}>
-
-            <div style={{ width: '100px', height: '100px', backgroundColor: '#f0fdf4', color: '#16a34a', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyCenter: 'center', margin: '0 auto 3rem auto', fontSize: '4rem', fontWeight: 900 }}>âœ“</div>
-
-            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '4rem', fontWeight: 900, color: '#3B2E28', marginBottom: '1rem', letterSpacing: '-0.02em' }}>Success!</h2>
-
-            <p style={{ fontSize: '1.25rem', color: '#5C4A3E', opacity: 0.6, marginBottom: '4rem' }}>{orderCompleteMsg}</p>
-
-            <button
-
-              onClick={() => { setOrderCompleteMsg(''); setIsCartOpen(false); }}
-
-              style={{ backgroundColor: '#8C6A53', color: '#fff', border: 'none', width: '100%', padding: '2rem', borderRadius: '2.5rem', fontSize: '1.2rem', fontWeight: 800, letterSpacing: '0.2em', cursor: 'pointer' }}
-
-              className="shadow-xl"
-
-            >
-
-
-              DONE
-            </button>
-          </div>
+      {orderCompleteMsg && lastOrder && (
+        <div className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-md flex items-center justify-center p-6">
+          <OrderConfirmationCard
+            orderId={lastOrder.id?.slice(-8).toUpperCase() || ''}
+            paymentMethod={lastOrder.paymentMethod || 'Cash on Delivery'}
+            dateTime={new Date(lastOrder.timestamp).toLocaleString('en-IN', {
+              day: '2-digit', month: 'short', year: 'numeric',
+              hour: '2-digit', minute: '2-digit', hour12: true,
+            })}
+            totalAmount={new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(lastOrder.grandTotal || lastOrder.total || 0)}
+            onGoToAccount={() => { setOrderCompleteMsg(''); setIsCartOpen(false); }}
+            title="Order Placed!"
+            buttonText="Done"
+          />
         </div>
       )}
 

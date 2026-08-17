@@ -165,15 +165,15 @@ function StatusSelect({ orderId, current, onChange }) {
   const cfg = STATUS_CONFIG[current] || STATUS_CONFIG.Accepted;
   return (
     <div className="relative inline-flex items-center">
-      <span className={"absolute left-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full pointer-events-none " + cfg.dot} />
+      <span className={"absolute left-2.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full pointer-events-none " + cfg.dot} />
       <select value={current} onChange={e=>onChange(orderId,e.target.value)}
-        className={"appearance-none text-xs font-bold rounded-xl border cursor-pointer outline-none transition-all " + cfg.color} style={{ padding: "8px 32px 8px 24px" }}>
+        className={"appearance-none text-xs font-bold rounded-xl border cursor-pointer outline-none transition-all " + cfg.color} style={{ padding: "6px 28px 6px 20px", maxWidth: "120px" }}>
         <option value="Accepted">Accepted</option>
         <option value="Preparing">Preparing</option>
         <option value="Out for Delivery">Delivery</option>
         <option value="Delivered">Delivered</option>
       </select>
-      <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-50" />
+      <ChevronDown size={13} className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-50" />
     </div>
   );
 }
@@ -590,7 +590,7 @@ export default function AdminPage() {
 
           {/* ═════ ORDERS TAB ═════ */}
           {activeTab==='orders'&&(
-            <div className="flex flex-col gap-8 w-full max-w-[1600px] mx-auto pb-20" style={{ padding: "32px" }}>
+            <div className="flex flex-col gap-4 sm:gap-8 w-full max-w-[1600px] mx-auto pb-20 px-4 sm:px-8" style={{ paddingTop: "24px", paddingBottom: "80px" }}>
               <div className="flex flex-col gap-4">
                 <div className="flex items-center bg-white border border-gray-200 rounded-2xl h-14 shadow-sm focus-within:border-orange-300 focus-within:ring-4 focus-within:ring-orange-50 transition-all" style={{ padding: "0 20px" }}>
                   <Search size={18} className="text-gray-400 shrink-0"/>
@@ -615,52 +615,57 @@ export default function AdminPage() {
               ) : filteredOrders.length===0 ? (
                 <div className="text-center py-32 flex flex-col items-center gap-4 text-gray-300"><Receipt size={64}/><p className="font-bold text-2xl text-gray-400">No orders found</p></div>
               ) : (
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mt-4">
-                  <div className="hidden md:flex items-center border-b border-gray-100 bg-[#F8FAFC]" style={{ padding: "20px 32px" }}>
-                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider w-32 shrink-0">Order ID</span>
-                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider flex-1">Customer & Items</span>
-                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider w-48 shrink-0">Status</span>
-                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider w-32 shrink-0 text-right">Total</span>
-                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider w-24 shrink-0 text-right">Actions</span>
-                  </div>
-                  <div className="divide-y divide-gray-100">
-                    {filteredOrders.map(o=>(
-                      <div key={o.id}>
-                        <div className="hidden md:flex items-center hover:bg-[#F8FAFC]/50 transition-colors border-b border-gray-100 last:border-0" style={{ padding: "24px 32px" }}>
-                          <div className="w-32 shrink-0">
-                            <p className="text-sm font-bold text-gray-900">#{o.id.slice(-6).toUpperCase()}</p>
-                            {o.timestamp&&<p className="text-xs font-medium text-gray-500 mt-1">{new Date(o.timestamp).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</p>}
-                          </div>
-                          <div className="flex-1 min-w-0 pr-6">
-                            <p className="text-base font-bold text-gray-900 truncate">{o.customerName||'Anonymous'}</p>
-                            <p className="text-sm text-gray-500 truncate mt-1">{o.items?.map(i=>i.name+'\u00d7'+i.qty).join(', ')}</p>
-                          </div>
-                          <div className="w-48 shrink-0"><StatusSelect orderId={o.id} current={o.status} onChange={updateStatus}/></div>
-                          <p className="w-32 shrink-0 text-base font-bold text-gray-900 text-right pr-4">₹{o.total}</p>
-                          <div className="w-24 shrink-0 flex items-center justify-end gap-2.5">
-                            <button onClick={()=>{setSelectedOrder(o);setIsInvoiceOpen(true);}} title="Invoice" className="w-9 h-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-orange-50 hover:text-[#F97316] hover:border-orange-200 shadow-sm transition-all"><FileText size={16}/></button>
-                            <button onClick={()=>deleteOrder(o.id)} title="Delete" className="w-9 h-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-red-50 hover:text-red-500 hover:border-red-200 shadow-sm transition-all"><Trash2 size={16}/></button>
+                <div className="mt-4">
+                  <div className="hidden md:block bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div className="hidden md:flex items-center border-b border-gray-100 bg-[#F8FAFC]" style={{ padding: "20px 32px" }}>
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-wider w-32 shrink-0">Order ID</span>
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-wider flex-1">Customer & Items</span>
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-wider w-48 shrink-0">Status</span>
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-wider w-32 shrink-0 text-right">Total</span>
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-wider w-24 shrink-0 text-right">Actions</span>
+                    </div>
+                    <div className="divide-y divide-gray-100">
+                      {filteredOrders.map(o=>(
+                        <div key={o.id} className="hidden md:block">
+                          <div className="flex items-center hover:bg-[#F8FAFC]/50 transition-colors border-b border-gray-100 last:border-0" style={{ padding: "24px 32px" }}>
+                            <div className="w-32 shrink-0">
+                              <p className="text-sm font-bold text-gray-900">#{o.id.slice(-6).toUpperCase()}</p>
+                              {o.timestamp&&<p className="text-xs font-medium text-gray-500 mt-1">{new Date(o.timestamp).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</p>}
+                            </div>
+                            <div className="flex-1 min-w-0 pr-6">
+                              <p className="text-base font-bold text-gray-900 truncate">{o.customerName||'Anonymous'}</p>
+                              <p className="text-sm text-gray-500 truncate mt-1">{o.items?.map(i=>i.name+'\u00d7'+i.qty).join(', ')}</p>
+                            </div>
+                            <div className="w-48 shrink-0"><StatusSelect orderId={o.id} current={o.status} onChange={updateStatus}/></div>
+                            <p className="w-32 shrink-0 text-base font-bold text-gray-900 text-right pr-4">₹{o.total}</p>
+                            <div className="w-24 shrink-0 flex items-center justify-end gap-2.5">
+                              <button onClick={()=>{setSelectedOrder(o);setIsInvoiceOpen(true);}} title="Invoice" className="w-9 h-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-orange-50 hover:text-[#F97316] hover:border-orange-200 shadow-sm transition-all"><FileText size={16}/></button>
+                              <button onClick={()=>deleteOrder(o.id)} title="Delete" className="w-9 h-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-red-50 hover:text-red-500 hover:border-red-200 shadow-sm transition-all"><Trash2 size={16}/></button>
+                            </div>
                           </div>
                         </div>
-                        <div className="md:hidden px-6 py-6 space-y-4">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center shrink-0"><Receipt size={20} className="text-orange-500"/></div>
-                              <div>
-                                <p className="text-base font-bold text-gray-900">#{o.id.slice(-6).toUpperCase()}</p>
-                                <p className="text-sm font-medium text-gray-500 mt-0.5">{o.customerName||'Anonymous'}</p>
-                              </div>
-                            </div>
-                            <StatusPill status={o.status}/>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Mobile card list */}
+                  <div className="md:hidden flex flex-col gap-3">
+                    {filteredOrders.map(o=>(
+                      <div key={'m-'+o.id} className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden" style={{ padding: "16px" }}>
+                        {/* Top row: icon + order info */}
+                        <div className="flex items-center gap-3" style={{ marginBottom: "12px" }}>
+                          <div className="w-11 h-11 bg-orange-50 rounded-xl flex items-center justify-center shrink-0"><Receipt size={18} className="text-orange-500"/></div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-gray-900">#{o.id.slice(-6).toUpperCase()} · {o.customerName||'Anonymous'}</p>
+                            <p className="text-xs text-gray-500 truncate" style={{ marginTop: "2px" }}>{o.items?.map(i=>i.name+' x'+i.qty).join(', ')}</p>
                           </div>
-                          <p className="text-sm text-gray-600 pl-16">{o.items?.map(i=>i.name+' x'+i.qty).join(', ')}</p>
-                          <div className="flex items-center justify-between pt-4 mt-2 border-t border-gray-100">
-                            <p className="text-lg font-bold text-gray-900">₹{o.total}</p>
-                            <div className="flex items-center gap-3">
-                              <StatusSelect orderId={o.id} current={o.status} onChange={updateStatus}/>
-                              <button onClick={()=>{setSelectedOrder(o);setIsInvoiceOpen(true);}} className="w-9 h-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-orange-50 hover:text-[#F97316] shadow-sm transition-all"><FileText size={16}/></button>
-                              <button onClick={()=>deleteOrder(o.id)} className="w-9 h-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-red-50 hover:text-red-500 shadow-sm transition-all"><Trash2 size={16}/></button>
-                            </div>
+                        </div>
+                        {/* Bottom row: price | status + actions */}
+                        <div className="flex items-center justify-between gap-2" style={{ borderTop: "1px solid #f1f5f9", paddingTop: "12px" }}>
+                          <p className="text-base font-bold text-gray-900 shrink-0">₹{o.total}</p>
+                          <div className="flex items-center gap-2">
+                            <StatusSelect orderId={o.id} current={o.status} onChange={updateStatus}/>
+                            <button onClick={()=>{setSelectedOrder(o);setIsInvoiceOpen(true);}} className="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-orange-50 hover:text-[#F97316] shadow-sm transition-all shrink-0"><FileText size={14}/></button>
+                            <button onClick={()=>deleteOrder(o.id)} className="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-red-50 hover:text-red-500 shadow-sm transition-all shrink-0"><Trash2 size={14}/></button>
                           </div>
                         </div>
                       </div>
