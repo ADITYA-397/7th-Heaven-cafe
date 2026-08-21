@@ -16,22 +16,22 @@ export default function CheckoutPage() {
   const { cartItems, clearCart } = useCart();
   const { user, profile } = useAuth();
 
-  // Form State prefilled with reference defaults or user info
-  const [name, setName] = useState("Sarah Jenkins");
-  const [phone, setPhone] = useState("+91 98765 43210");
+  // Form State initialized from logged in user if present, or editable empty with placeholders
+  const [name, setName] = useState(profile?.name || user?.displayName || "");
+  const [phone, setPhone] = useState(profile?.phone || "");
   const [address, setAddress] = useState(
-    "Flat 402, Oakwood Residency, 7th Main Road, Indiranagar, Bengaluru"
+    profile?.addresses?.[0] || profile?.address || ""
   );
 
   // Card fields
-  const [cardNumber, setCardNumber] = useState("4111 2222 3333 4444");
-  const [expiry, setExpiry] = useState("12/28");
-  const [cvv, setCvv] = useState("•••");
-  const [cardName, setCardName] = useState("Sarah Jenkins");
+  const [cardNumber, setCardNumber] = useState("");
+  const [expiry, setExpiry] = useState("");
+  const [cvv, setCvv] = useState("");
+  const [cardName, setCardName] = useState(profile?.name || user?.displayName || "");
 
   // Payment tab state: "Credit Card" | "Debit Card" | "UPI ID" | "UPI Apps"
   const [paymentTab, setPaymentTab] = useState("Credit Card");
-  const [upiId, setUpiId] = useState("sarah@okhdfcbank");
+  const [upiId, setUpiId] = useState("");
   const [isUpiVerified, setIsUpiVerified] = useState(false);
   const [selectedUpiApp, setSelectedUpiApp] = useState("Google Pay");
 
@@ -42,14 +42,14 @@ export default function CheckoutPage() {
   const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
 
   useEffect(() => {
-    if (profile?.name) {
-      setName(profile.name);
-      setCardName(profile.name);
+    if (profile?.name || user?.displayName) {
+      setName(profile?.name || user?.displayName);
+      setCardName(profile?.name || user?.displayName);
     }
     if (profile?.phone) setPhone(profile.phone);
     if (profile?.addresses?.length > 0) setAddress(profile.addresses[0]);
     else if (profile?.address) setAddress(profile.address);
-  }, [profile]);
+  }, [profile, user]);
 
   // Pricing calculations (fallback to reference values ₹820/₹41/₹860 if cart has 0 items)
   const cartSubtotal = cartItems.reduce((s, i) => s + (i.price || 0) * i.qty, 0);
@@ -298,6 +298,7 @@ export default function CheckoutPage() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Sarah Jenkins"
                     style={{
                       width: "100%",
                       background: "transparent",
@@ -333,6 +334,7 @@ export default function CheckoutPage() {
                     type="text"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
+                    placeholder="e.g. +91 98765 43210"
                     style={{
                       width: "100%",
                       background: "transparent",
@@ -368,6 +370,7 @@ export default function CheckoutPage() {
                     type="text"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
+                    placeholder="e.g. Flat 402, Oakwood Residency, 7th Main Road, Indiranagar, Bengaluru"
                     style={{
                       width: "100%",
                       background: "transparent",
