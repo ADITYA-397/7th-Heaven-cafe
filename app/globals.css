@@ -21,10 +21,16 @@
     --color-muted: rgba(92, 74, 62, 0.7);
 }
 
-* {
-    margin: 0;
-    padding: 0;
+*, ::before, ::after {
     box-sizing: border-box;
+}
+
+body, h1, h2, h3, h4, h5, h6, p, ul, ol, figure, blockquote, dl, dd {
+    margin: 0;
+}
+
+ul, ol {
+    padding: 0;
 }
 
 html {

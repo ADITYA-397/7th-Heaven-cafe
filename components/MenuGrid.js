@@ -83,7 +83,7 @@ export default function MenuGrid() {
   }
 
   return (
-    <section id="menu" className="bg-[#EAE3D9] relative overflow-hidden font-serif scroll-mt-28" style={{ padding: "96px 24px 120px 24px" }}>
+    <section id="menu" className="bg-[#EAE3D9] relative overflow-hidden font-serif scroll-mt-28" style={{ padding: "96px 24px 72px 24px" }}>
       <ScallopedDivider position="top" color="#EAE3D9" />
       <ScallopedDivider position="bottom" color="#EAE3D9" />
 
@@ -112,10 +112,10 @@ export default function MenuGrid() {
               ))}
             </div>
           ) : (
-            <div className="space-y-64">
+            <div className="space-y-16 md:space-y-20">
               {sortedCategories.map(category => (
-                <div key={category} className="space-y-16">
-                  <div className="text-center space-y-4">
+                <div key={category} className="space-y-8 md:space-y-10">
+                  <div className="text-center space-y-3">
                     <h3 className="text-3xl md:text-5xl font-heading font-bold text-[#3B2E28] tracking-tight">{category}</h3>
                     <div className="menu-ornament-top !my-0 opacity-40" />
                   </div>
@@ -131,7 +131,7 @@ export default function MenuGrid() {
         </div>
 
         {/* === PREMIUM VIEW FULL MENU BUTTON === */}
-        <div className="mt-48 md:mt-64 text-center">
+        <div className="text-center" style={{ marginTop: "72px" }}>
           <button 
             onClick={() => {
               setIsExpanded(!isExpanded);
