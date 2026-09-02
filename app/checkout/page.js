@@ -9,6 +9,7 @@ import { db } from "../../firebase";
 import InvoiceModal from "../../components/InvoiceModal";
 import CartDrawer from "../../components/CartDrawer";
 import ProfileDrawer from "../../components/ProfileDrawer";
+import { OrderConfirmationCard } from "../../components/order-confirmation-card";
 
 const DELIVERY_FEE = 40;
 
@@ -34,7 +35,6 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (profile?.name || user?.displayName) {
       setName(profile?.name || user?.displayName);
-      setCardName(profile?.name || user?.displayName);
     }
     if (user?.email || profile?.email) {
       setEmail(user?.email || profile?.email);
