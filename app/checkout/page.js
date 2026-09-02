@@ -72,6 +72,15 @@ export default function CheckoutPage() {
       document.body.appendChild(s);
     });
 
+  const saveLocalOrderId = (id) => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("7h_active_orders") || "[]");
+      if (Array.isArray(stored) && !stored.includes(id)) {
+        localStorage.setItem("7h_active_orders", JSON.stringify([...stored, id]));
+      }
+    } catch (e) {}
+  };
+
   const handlePay = async (e) => {
     if (e) e.preventDefault();
     setIsProcessing(true);
@@ -99,6 +108,7 @@ export default function CheckoutPage() {
           paymentMethod: `Online - ${paymentTab}`,
         };
         const ref = await addDoc(collection(db, "orders"), od);
+        saveLocalOrderId(ref.id);
         clearCart();
         setIsProcessing(false);
         router.push(`/track-order/${ref.id}`);
@@ -131,6 +141,7 @@ export default function CheckoutPage() {
           paymentMethod: `Demo - ${paymentTab}`,
         };
         const ref = await addDoc(collection(db, "orders"), od);
+        saveLocalOrderId(ref.id);
         clearCart();
         setIsProcessing(false);
         router.push(`/track-order/${ref.id}`);
@@ -168,6 +179,7 @@ export default function CheckoutPage() {
             razorpayOrderId: resp.razorpay_order_id,
           };
           const ref = await addDoc(collection(db, "orders"), od);
+          saveLocalOrderId(ref.id);
           clearCart();
           setIsProcessing(false);
 
@@ -230,6 +242,7 @@ export default function CheckoutPage() {
         paymentMethod: `Direct - ${paymentTab}`,
       };
       const ref = await addDoc(collection(db, "orders"), od);
+      saveLocalOrderId(ref.id);
       clearCart();
       setIsProcessing(false);
       router.push(`/track-order/${ref.id}`);
