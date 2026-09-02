@@ -21,6 +21,17 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (mobileMenu) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenu]);
+
   const handleUserClick = () => {
     if (user || profile) toggleProfile();
     else router.push('/login');
@@ -34,22 +45,22 @@ export default function Navbar() {
       borderBottom: isSolid ? '1px solid #D8CEBF' : 'none',
       transition: 'background-color 0.3s ease',
     }}>
-      <div className="nav-container" style={{ maxWidth: "1160px", padding: "0 clamp(24px, 5vw, 64px)" }}>
-        <a href="/" className="logo" style={{ color: isSolid ? '#2E2620' : undefined, fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>7th Heaven.</a>
+      <div className="nav-container" style={{ maxWidth: "1160px", padding: "0 clamp(16px, 4vw, 64px)" }}>
+        <a href="/" className="logo" style={{ color: isSolid ? '#2E2620' : undefined, fontFamily: "'Playfair Display', serif", fontWeight: 700, zIndex: 101 }}>7th Heaven.</a>
         <ul className={`nav-links ${mobileMenu ? 'active' : ''}`}>
           <li><a href="/#home" onClick={() => setMobileMenu(false)} style={{ color: '#C08552', fontWeight: 600 }}>Home</a></li>
-          <li><a href="/#about" onClick={() => setMobileMenu(false)} style={{ color: isSolid ? '#2E2620' : undefined }}>Our Story</a></li>
-          <li><a href="/#menu" onClick={() => setMobileMenu(false)} style={{ color: isSolid ? '#2E2620' : undefined }}>Menu</a></li>
-          <li><a href="/#contact" onClick={() => setMobileMenu(false)} style={{ color: isSolid ? '#2E2620' : undefined }}>Visit Us</a></li>
+          <li><a href="/#about" onClick={() => setMobileMenu(false)} style={{ color: '#2E2620' }}>Our Story</a></li>
+          <li><a href="/#menu" onClick={() => setMobileMenu(false)} style={{ color: '#2E2620' }}>Menu</a></li>
+          <li><a href="/#contact" onClick={() => setMobileMenu(false)} style={{ color: '#2E2620' }}>Visit Us</a></li>
           {profile?.role === 'admin' && (
-            <li><a href="/admin" onClick={() => setMobileMenu(false)} style={{ color: isSolid ? '#2E2620' : undefined }}>Admin Panel</a></li>
+            <li><a href="/admin" onClick={() => setMobileMenu(false)} style={{ color: '#2E2620' }}>Admin Panel</a></li>
           )}
         </ul>
-        <div className="nav-actions">
+        <div className="nav-actions" style={{ zIndex: 101 }}>
           <span className="nav-icon" id="user-icon" onClick={handleUserClick} style={{ color: isSolid ? '#2E2620' : undefined, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             {displayName && (
-              <span id="user-name-display" style={{ fontSize: '14px', fontWeight: 500 }}>{displayName}</span>
+              <span id="user-name-display" className="hidden sm:inline max-w-[120px] truncate" style={{ fontSize: '14px', fontWeight: 500 }}>{displayName}</span>
             )}
           </span>
           <span className="nav-icon" id="cart-icon" onClick={toggleCart} style={{ color: isSolid ? '#2E2620' : undefined, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }}>
@@ -67,10 +78,10 @@ export default function Navbar() {
             )}
           </span>
         </div>
-        <div className={`hamburger ${mobileMenu ? 'active' : ''}`} onClick={() => setMobileMenu(!mobileMenu)}>
-          <span className="bar" style={{ backgroundColor: isSolid ? '#2E2620' : undefined }}></span>
-          <span className="bar" style={{ backgroundColor: isSolid ? '#2E2620' : undefined }}></span>
-          <span className="bar" style={{ backgroundColor: isSolid ? '#2E2620' : undefined }}></span>
+        <div className={`hamburger ${mobileMenu ? 'active' : ''}`} onClick={() => setMobileMenu(!mobileMenu)} style={{ zIndex: 101 }}>
+          <span className="bar" style={{ backgroundColor: isSolid || mobileMenu ? '#2E2620' : undefined }}></span>
+          <span className="bar" style={{ backgroundColor: isSolid || mobileMenu ? '#2E2620' : undefined }}></span>
+          <span className="bar" style={{ backgroundColor: isSolid || mobileMenu ? '#2E2620' : undefined }}></span>
         </div>
       </div>
     </nav>

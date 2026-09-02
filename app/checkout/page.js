@@ -269,16 +269,16 @@ export default function CheckoutPage() {
         style={{
           maxWidth: "1160px",
           margin: "0 auto",
-          padding: "110px clamp(24px, 5vw, 64px) 100px",
+          padding: "100px clamp(16px, 4vw, 64px) 80px",
           boxSizing: "border-box",
         }}
       >
         {/* Page Title Block */}
-        <div style={{ marginBottom: "40px" }}>
+        <div style={{ marginBottom: "36px" }}>
           <h1
             style={{
               fontFamily: "'Playfair Display', serif",
-              fontSize: "clamp(2rem, 3.5vw, 2.5rem)",
+              fontSize: "clamp(1.85rem, 4vw, 2.5rem)",
               fontWeight: 700,
               color: "#2E2620",
               margin: "0 0 8px 0",
@@ -304,7 +304,7 @@ export default function CheckoutPage() {
           style={{
             display: "flex",
             flexWrap: "wrap",
-            gap: "56px",
+            gap: "clamp(28px, 4vw, 52px)",
             alignItems: "flex-start",
             width: "100%",
             boxSizing: "border-box",
@@ -313,7 +313,7 @@ export default function CheckoutPage() {
           {/* LEFT COLUMN: Numbered Form Sections */}
           <div
             style={{
-              flex: "1 1 580px",
+              flex: "1 1 540px",
               minWidth: 0,
               width: "100%",
               boxSizing: "border-box",

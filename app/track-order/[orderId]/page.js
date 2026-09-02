@@ -267,7 +267,7 @@ export default function TrackOrderPage({ params }) {
         style={{
           maxWidth: "700px",
           margin: "0 auto",
-          padding: "110px 24px 80px",
+          padding: "100px clamp(16px, 4vw, 24px) 80px",
           boxSizing: "border-box",
         }}
       >
@@ -447,7 +447,7 @@ export default function TrackOrderPage({ params }) {
             </div>
 
             {/* Action Buttons Side by Side */}
-            <div className="flex flex-row items-center justify-center gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-8 w-full">
               <button
                 onClick={() => router.push("/")}
                 style={{
@@ -461,7 +461,7 @@ export default function TrackOrderPage({ params }) {
                   cursor: "pointer",
                   transition: "all 0.2s ease",
                 }}
-                className="hover:bg-[#B3784A]/10 active:scale-95"
+                className="w-full sm:w-auto hover:bg-[#B3784A]/10 active:scale-95"
               >
                 Back to Home
               </button>
@@ -480,7 +480,7 @@ export default function TrackOrderPage({ params }) {
                   boxShadow: "0 2px 10px rgba(179, 120, 74, 0.25)",
                   transition: "all 0.2s ease",
                 }}
-                className="hover:bg-[#9E653A] active:scale-95"
+                className="w-full sm:w-auto hover:bg-[#9E653A] active:scale-95"
               >
                 Order Again
               </button>
@@ -854,7 +854,7 @@ export default function TrackOrderPage({ params }) {
             </div>
 
             {/* Action Buttons Side by Side */}
-            <div className="flex flex-row items-center justify-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full">
               <button
                 onClick={() => router.push("/")}
                 style={{
@@ -868,7 +868,7 @@ export default function TrackOrderPage({ params }) {
                   cursor: "pointer",
                   transition: "all 0.2s ease",
                 }}
-                className="hover:bg-[#C08552]/10 active:scale-95"
+                className="w-full sm:w-auto hover:bg-[#C08552]/10 active:scale-95"
               >
                 Back to Home
               </button>
@@ -887,7 +887,7 @@ export default function TrackOrderPage({ params }) {
                   boxShadow: "0 2px 10px rgba(192, 133, 82, 0.25)",
                   transition: "all 0.2s ease",
                 }}
-                className="hover:bg-[#A86F3E] active:scale-95"
+                className="w-full sm:w-auto hover:bg-[#A86F3E] active:scale-95"
               >
                 Order Again
               </button>

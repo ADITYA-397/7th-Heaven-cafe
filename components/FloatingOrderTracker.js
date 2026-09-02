@@ -150,7 +150,7 @@ export default function FloatingOrderTracker() {
   return (
     <div
       ref={popoverRef}
-      className="fixed bottom-6 right-6 z-50 flex flex-col items-end"
+      className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end max-w-[calc(100vw-32px)]"
       style={{
         fontFamily:
           "var(--font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif)",
@@ -161,7 +161,7 @@ export default function FloatingOrderTracker() {
       {/* ═══════════════════════════════════════════════════════════════ */}
       {isMultiple && isPopoverOpen && (
         <div
-          className="mb-3 w-[330px] sm:w-[360px] bg-white rounded-2xl p-4 shadow-[0_12px_36px_rgba(0,0,0,0.16)] border border-black/[0.06] animate-fadeIn"
+          className="mb-3 w-[calc(100vw-32px)] sm:w-[360px] max-w-[360px] bg-white rounded-2xl p-4 shadow-[0_12px_36px_rgba(0,0,0,0.16)] border border-black/[0.06] animate-fadeIn"
           style={{
             boxShadow: "0 14px 40px rgba(59, 46, 40, 0.18)",
             animation: "fadeInUp 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
