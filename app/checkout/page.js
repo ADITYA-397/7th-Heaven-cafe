@@ -25,18 +25,6 @@ export default function CheckoutPage() {
     profile?.addresses?.[0] || profile?.address || ""
   );
 
-  // Card fields
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvv, setCvv] = useState("");
-  const [cardName, setCardName] = useState(profile?.name || user?.displayName || "");
-
-  // Payment tab state: "Credit Card" | "Debit Card" | "UPI ID" | "UPI Apps"
-  const [paymentTab, setPaymentTab] = useState("Credit Card");
-  const [upiId, setUpiId] = useState("");
-  const [isUpiVerified, setIsUpiVerified] = useState(false);
-  const [selectedUpiApp, setSelectedUpiApp] = useState("Google Pay");
-
   // Order processing state
   const [isProcessing, setIsProcessing] = useState(false);
   const [lastOrder, setLastOrder] = useState(null);
@@ -105,7 +93,7 @@ export default function CheckoutPage() {
           timestamp: now.toISOString(),
           placedAt: now.toISOString(),
           estimatedDeliveryAt: estDelivery,
-          paymentMethod: `Online - ${paymentTab}`,
+          paymentMethod: "Online Payment",
         };
         const ref = await addDoc(collection(db, "orders"), od);
         saveLocalOrderId(ref.id);
@@ -138,7 +126,7 @@ export default function CheckoutPage() {
           timestamp: now.toISOString(),
           placedAt: now.toISOString(),
           estimatedDeliveryAt: estDelivery,
-          paymentMethod: `Demo - ${paymentTab}`,
+          paymentMethod: "Online Payment",
         };
         const ref = await addDoc(collection(db, "orders"), od);
         saveLocalOrderId(ref.id);
@@ -174,7 +162,7 @@ export default function CheckoutPage() {
             timestamp: now.toISOString(),
             placedAt: now.toISOString(),
             estimatedDeliveryAt: estDelivery,
-            paymentMethod: `Paid via Razorpay (${paymentTab})`,
+            paymentMethod: "Paid via Razorpay",
             razorpayPaymentId: resp.razorpay_payment_id,
             razorpayOrderId: resp.razorpay_order_id,
           };
@@ -200,7 +188,7 @@ export default function CheckoutPage() {
                 total: od.grandTotal,
                 items: od.items,
                 address: od.customerAddress,
-                paymentMethod: `Razorpay (${paymentTab})`,
+                paymentMethod: "Razorpay",
                 paymentId: resp.razorpay_payment_id,
               }),
             }).catch((emailErr) => console.error("Email send error:", emailErr));
@@ -239,7 +227,7 @@ export default function CheckoutPage() {
         timestamp: now.toISOString(),
         placedAt: now.toISOString(),
         estimatedDeliveryAt: estDelivery,
-        paymentMethod: `Direct - ${paymentTab}`,
+        paymentMethod: "Direct Online",
       };
       const ref = await addDoc(collection(db, "orders"), od);
       saveLocalOrderId(ref.id);
@@ -248,9 +236,6 @@ export default function CheckoutPage() {
       router.push(`/track-order/${ref.id}`);
     }
   };
-
-  const paymentTabs = ["Credit Card", "Debit Card", "UPI ID", "UPI Apps"];
-  const upiQuickApps = ["Google Pay", "PhonePe", "Paytm"];
 
   return (
     <div
@@ -319,7 +304,7 @@ export default function CheckoutPage() {
               boxSizing: "border-box",
             }}
           >
-            {/* Section 1: Delivery & Contact Details */}
+            {/* Delivery & Contact Details */}
             <div>
               <h2
                 style={{
@@ -331,7 +316,7 @@ export default function CheckoutPage() {
                   lineHeight: 1.3,
                 }}
               >
-                1. Delivery & Contact Details
+                Delivery & Contact Details
               </h2>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
@@ -479,326 +464,26 @@ export default function CheckoutPage() {
                   />
                 </div>
               </div>
-            </div>
 
-            {/* Section 2: Payment Method */}
-            <div style={{ marginTop: "48px" }}>
-              <h2
-                style={{
-                  fontFamily: "'Playfair Display', serif",
-                  fontSize: "20px",
-                  fontWeight: 700,
-                  color: "#2E2620",
-                  margin: "0 0 22px 0",
-                  lineHeight: 1.3,
-                }}
-              >
-                2. Payment Method
-              </h2>
-
-              {/* Tabs Row */}
+              {/* Secure Payment Reassurance Note */}
               <div
                 style={{
                   display: "flex",
-                  flexWrap: "wrap",
+                  alignItems: "center",
                   gap: "10px",
-                  marginBottom: "20px",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  color: "#8A7D6E",
+                  marginTop: "32px",
+                  paddingTop: "20px",
+                  borderTop: "1px solid #E2D9CC",
                 }}
               >
-                {paymentTabs.map((tab) => {
-                  const isActive = paymentTab === tab;
-                  return (
-                    <button
-                      key={tab}
-                      type="button"
-                      onClick={() => setPaymentTab(tab)}
-                      style={{
-                        backgroundColor: isActive ? "#C08552" : "transparent",
-                        color: isActive ? "#FFFFFF" : "#2E2620",
-                        border: isActive ? "1px solid #C08552" : "1px solid #D5CBBF",
-                        borderRadius: "8px",
-                        padding: "10px 18px",
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        cursor: "pointer",
-                        minHeight: "44px",
-                        transition: "all 0.15s ease",
-                      }}
-                    >
-                      {tab}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Payment Card Container */}
-              <div
-                style={{
-                  backgroundColor: "#F7F2EC",
-                  borderRadius: "16px",
-                  padding: "26px 28px",
-                  border: "1px solid #DCD3C6",
-                  marginBottom: "28px",
-                  boxSizing: "border-box",
-                }}
-              >
-                {(paymentTab === "Credit Card" || paymentTab === "Debit Card") && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "22px" }}>
-                    {/* CARD NUMBER */}
-                    <div>
-                      <label
-                        style={{
-                          display: "block",
-                          fontSize: "11px",
-                          fontWeight: 700,
-                          letterSpacing: "0.08em",
-                          color: "#8A7D6E",
-                          textTransform: "uppercase",
-                          marginBottom: "6px",
-                        }}
-                      >
-                        CARD NUMBER
-                      </label>
-                      <input
-                        type="text"
-                        value={cardNumber}
-                        onChange={(e) => setCardNumber(e.target.value)}
-                        placeholder="4111 2222 3333 4444"
-                        style={{
-                          width: "100%",
-                          background: "transparent",
-                          border: "none",
-                          borderBottom: "1px solid #DCD3C6",
-                          padding: "4px 0 12px 0",
-                          fontSize: "15px",
-                          fontWeight: 500,
-                          color: "#2E2620",
-                          outline: "none",
-                          boxSizing: "border-box",
-                          fontFamily: "inherit",
-                        }}
-                      />
-                    </div>
-
-                    {/* EXPIRY & CVV Side by Side */}
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "24px",
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      <div style={{ flex: "1 1 180px", minWidth: 0 }}>
-                        <label
-                          style={{
-                            display: "block",
-                            fontSize: "11px",
-                            fontWeight: 700,
-                            letterSpacing: "0.08em",
-                            color: "#8A7D6E",
-                            textTransform: "uppercase",
-                            marginBottom: "6px",
-                          }}
-                        >
-                          EXPIRY MM/YY
-                        </label>
-                        <input
-                          type="text"
-                          value={expiry}
-                          onChange={(e) => setExpiry(e.target.value)}
-                          placeholder="12/28"
-                          style={{
-                            width: "100%",
-                            background: "transparent",
-                            border: "none",
-                            borderBottom: "1px solid #DCD3C6",
-                            padding: "4px 0 12px 0",
-                            fontSize: "15px",
-                            fontWeight: 500,
-                            color: "#2E2620",
-                            outline: "none",
-                            boxSizing: "border-box",
-                            fontFamily: "inherit",
-                          }}
-                        />
-                      </div>
-
-                      <div style={{ flex: "1 1 180px", minWidth: 0 }}>
-                        <label
-                          style={{
-                            display: "block",
-                            fontSize: "11px",
-                            fontWeight: 700,
-                            letterSpacing: "0.08em",
-                            color: "#8A7D6E",
-                            textTransform: "uppercase",
-                            marginBottom: "6px",
-                          }}
-                        >
-                          CVV
-                        </label>
-                        <input
-                          type="password"
-                          value={cvv}
-                          onChange={(e) => setCvv(e.target.value)}
-                          placeholder="•••"
-                          maxLength={4}
-                          style={{
-                            width: "100%",
-                            background: "transparent",
-                            border: "none",
-                            borderBottom: "1px solid #DCD3C6",
-                            padding: "4px 0 12px 0",
-                            fontSize: "15px",
-                            fontWeight: 500,
-                            color: "#2E2620",
-                            outline: "none",
-                            boxSizing: "border-box",
-                            fontFamily: "inherit",
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* NAME ON CARD */}
-                    <div>
-                      <label
-                        style={{
-                          display: "block",
-                          fontSize: "11px",
-                          fontWeight: 700,
-                          letterSpacing: "0.08em",
-                          color: "#8A7D6E",
-                          textTransform: "uppercase",
-                          marginBottom: "6px",
-                        }}
-                      >
-                        NAME ON CARD
-                      </label>
-                      <input
-                        type="text"
-                        value={cardName}
-                        onChange={(e) => setCardName(e.target.value)}
-                        placeholder="Sarah Jenkins"
-                        style={{
-                          width: "100%",
-                          background: "transparent",
-                          border: "none",
-                          borderBottom: "1px solid #DCD3C6",
-                          padding: "4px 0 12px 0",
-                          fontSize: "15px",
-                          fontWeight: 500,
-                          color: "#2E2620",
-                          outline: "none",
-                          boxSizing: "border-box",
-                          fontFamily: "inherit",
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {paymentTab === "UPI ID" && (
-                  <div>
-                    <label
-                      style={{
-                        display: "block",
-                        fontSize: "11px",
-                        fontWeight: 700,
-                        letterSpacing: "0.08em",
-                        color: "#8A7D6E",
-                        textTransform: "uppercase",
-                        marginBottom: "6px",
-                      }}
-                    >
-                      UPI ID
-                    </label>
-                    <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-                      <input
-                        type="text"
-                        value={upiId}
-                        onChange={(e) => {
-                          setUpiId(e.target.value);
-                          setIsUpiVerified(false);
-                        }}
-                        placeholder="yourname@bank"
-                        style={{
-                          flex: 1,
-                          background: "transparent",
-                          border: "none",
-                          borderBottom: "1px solid #DCD3C6",
-                          padding: "6px 0 12px 0",
-                          fontSize: "15px",
-                          fontWeight: 500,
-                          color: "#2E2620",
-                          outline: "none",
-                          boxSizing: "border-box",
-                          fontFamily: "inherit",
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setIsUpiVerified(true)}
-                        style={{
-                          backgroundColor: isUpiVerified ? "#2E7D32" : "#C08552",
-                          color: "#FFFFFF",
-                          border: "none",
-                          borderRadius: "8px",
-                          padding: "8px 16px",
-                          fontSize: "13px",
-                          fontWeight: 600,
-                          cursor: "pointer",
-                          minHeight: "38px",
-                        }}
-                      >
-                        {isUpiVerified ? "✓ Verified" : "Verify"}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {paymentTab === "UPI Apps" && (
-                  <div>
-                    <label
-                      style={{
-                        display: "block",
-                        fontSize: "11px",
-                        fontWeight: 700,
-                        letterSpacing: "0.08em",
-                        color: "#8A7D6E",
-                        textTransform: "uppercase",
-                        marginBottom: "12px",
-                      }}
-                    >
-                      SELECT PREFERRED UPI APP
-                    </label>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "12px" }}>
-                      {upiQuickApps.map((app) => {
-                        const isAppActive = selectedUpiApp === app;
-                        return (
-                          <div
-                            key={app}
-                            onClick={() => setSelectedUpiApp(app)}
-                            style={{
-                              border: isAppActive ? "2px solid #C08552" : "1px solid #DCD3C6",
-                              backgroundColor: isAppActive ? "rgba(192, 133, 82, 0.08)" : "#FFFFFF",
-                              borderRadius: "12px",
-                              padding: "14px",
-                              textAlign: "center",
-                              cursor: "pointer",
-                              fontWeight: 600,
-                              fontSize: "14px",
-                              color: "#2E2620",
-                              transition: "all 0.15s ease",
-                            }}
-                          >
-                            {app}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C08552" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <span>Guaranteed safe & secure checkout powered by Razorpay (Cards, UPI, Netbanking)</span>
               </div>
             </div>
           </div>
