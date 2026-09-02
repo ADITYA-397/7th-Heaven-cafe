@@ -18,6 +18,7 @@ export default function CheckoutPage() {
 
   // Form State initialized from logged in user if present, or editable empty with placeholders
   const [name, setName] = useState(profile?.name || user?.displayName || "");
+  const [email, setEmail] = useState(user?.email || profile?.email || "");
   const [phone, setPhone] = useState(profile?.phone || "");
   const [address, setAddress] = useState(
     profile?.addresses?.[0] || profile?.address || ""
@@ -45,6 +46,9 @@ export default function CheckoutPage() {
     if (profile?.name || user?.displayName) {
       setName(profile?.name || user?.displayName);
       setCardName(profile?.name || user?.displayName);
+    }
+    if (user?.email || profile?.email) {
+      setEmail(user?.email || profile?.email);
     }
     if (profile?.phone) setPhone(profile.phone);
     if (profile?.addresses?.length > 0) setAddress(profile.addresses[0]);
@@ -131,22 +135,24 @@ export default function CheckoutPage() {
       }
 
       const opts = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_TYpo90mJ5uVdGk",
+        key: data.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_TYpo90mJ5uVdGk",
         amount: data.order.amount,
         currency: data.order.currency,
-        name: "7th Heaven",
+        name: "7th Heaven Cafe",
         description: "Order Payment",
         order_id: data.order.id,
         prefill: {
-          name: name || user?.email,
+          name: name || user?.displayName || "",
           contact: phone || "",
+          email: email || user?.email || "",
         },
         handler: async (resp) => {
           const od = {
             userId: user?.uid || "guest",
-            customerName: name,
-            customerAddress: address,
-            customerPhone: phone,
+            customerName: name || "Valued Customer",
+            customerEmail: email || user?.email || "",
+            customerAddress: address || "Dine-in / Pickup",
+            customerPhone: phone || "",
             items: cartItems.length > 0 ? cartItems : [{ name: "Warm Cafe Order", price: subtotal, qty: 1 }],
             total: subtotal,
             grandTotal: total,
@@ -157,17 +163,50 @@ export default function CheckoutPage() {
             razorpayOrderId: resp.razorpay_order_id,
           };
           const ref = await addDoc(collection(db, "orders"), od);
+          const finalOrder = { id: ref.id, ...od };
           clearCart();
-          setLastOrder({ id: ref.id, ...od });
-          setOrderCompleteMsg("Payment received!");
+          setLastOrder(finalOrder);
+          setOrderCompleteMsg("Payment received successfully!");
           setIsProcessing(false);
+
+          // Send confirmation invoice email
+          const targetEmail = email || user?.email;
+          if (targetEmail) {
+            try {
+              await fetch("/api/send-order-email", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  orderEmail: targetEmail,
+                  customerName: od.customerName,
+                  customerPhone: od.customerPhone,
+                  orderId: ref.id,
+                  subtotal: od.total,
+                  taxes: taxes,
+                  deliveryFee: DELIVERY_FEE,
+                  total: od.grandTotal,
+                  items: od.items,
+                  address: od.customerAddress,
+                  paymentMethod: `Razorpay (${paymentTab})`,
+                  paymentId: resp.razorpay_payment_id,
+                }),
+              });
+            } catch (emailErr) {
+              console.error("Failed to send order email:", emailErr);
+            }
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setIsProcessing(false);
+          },
         },
         theme: { color: "#C08552" },
       };
 
       const rzp = new window.Razorpay(opts);
       rzp.on("payment.failed", (r) => {
-        alert("Payment Failed: " + r.error.description);
+        alert("Payment Failed: " + (r.error?.description || "Transaction declined"));
         setIsProcessing(false);
       });
       rzp.open();
@@ -335,6 +374,42 @@ export default function CheckoutPage() {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="e.g. +91 98765 43210"
+                    style={{
+                      width: "100%",
+                      background: "transparent",
+                      border: "none",
+                      borderBottom: "1px solid #DCD3C6",
+                      padding: "4px 0 12px 0",
+                      fontSize: "15px",
+                      fontWeight: 500,
+                      color: "#2E2620",
+                      outline: "none",
+                      boxSizing: "border-box",
+                      fontFamily: "inherit",
+                    }}
+                  />
+                </div>
+
+                {/* EMAIL ADDRESS */}
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      letterSpacing: "0.08em",
+                      color: "#8A7D6E",
+                      textTransform: "uppercase",
+                      marginBottom: "6px",
+                    }}
+                  >
+                    EMAIL ADDRESS (FOR INVOICE)
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="e.g. sarah.jenkins@example.com"
                     style={{
                       width: "100%",
                       background: "transparent",
