@@ -37,9 +37,9 @@ export default function Navbar() {
       <div className="nav-container" style={{ maxWidth: "1160px", padding: "0 clamp(24px, 5vw, 64px)" }}>
         <a href="/" className="logo" style={{ color: isSolid ? '#2E2620' : undefined, fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>7th Heaven.</a>
         <ul className={`nav-links ${mobileMenu ? 'active' : ''}`}>
-          <li><a href="/#home" onClick={() => setMobileMenu(false)} style={{ color: isSolid ? '#2E2620' : undefined }}>Home</a></li>
+          <li><a href="/#home" onClick={() => setMobileMenu(false)} style={{ color: '#C08552', fontWeight: 600 }}>Home</a></li>
           <li><a href="/#about" onClick={() => setMobileMenu(false)} style={{ color: isSolid ? '#2E2620' : undefined }}>Our Story</a></li>
-          <li><a href="/#menu" onClick={() => setMobileMenu(false)} style={{ color: '#C08552', fontWeight: 600 }}>Menu</a></li>
+          <li><a href="/#menu" onClick={() => setMobileMenu(false)} style={{ color: isSolid ? '#2E2620' : undefined }}>Menu</a></li>
           <li><a href="/#contact" onClick={() => setMobileMenu(false)} style={{ color: isSolid ? '#2E2620' : undefined }}>Visit Us</a></li>
           {profile?.role === 'admin' && (
             <li><a href="/admin" onClick={() => setMobileMenu(false)} style={{ color: isSolid ? '#2E2620' : undefined }}>Admin Panel</a></li>

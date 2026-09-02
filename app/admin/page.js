@@ -16,11 +16,15 @@ import {
   Coffee, Menu, Settings, HelpCircle, Download, Calendar
 } from 'lucide-react';
 
-// ─── Config ──────────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
-  Accepted:          { label: 'Accepted',  color: 'bg-blue-50 text-blue-600 border-blue-100',         dot: 'bg-blue-500' },
+  placed:            { label: 'Placed',    color: 'bg-blue-50 text-blue-600 border-blue-100',         dot: 'bg-blue-500' },
+  Accepted:          { label: 'Placed',    color: 'bg-blue-50 text-blue-600 border-blue-100',         dot: 'bg-blue-500' },
+  Paid:              { label: 'Placed',    color: 'bg-blue-50 text-blue-600 border-blue-100',         dot: 'bg-blue-500' },
+  preparing:         { label: 'Preparing', color: 'bg-amber-50 text-amber-600 border-amber-100',       dot: 'bg-amber-500' },
   Preparing:         { label: 'Preparing', color: 'bg-amber-50 text-amber-600 border-amber-100',       dot: 'bg-amber-500' },
+  out_for_delivery:  { label: 'Delivery',  color: 'bg-violet-50 text-violet-600 border-violet-100',    dot: 'bg-violet-500' },
   'Out for Delivery':{ label: 'Delivery',  color: 'bg-violet-50 text-violet-600 border-violet-100',    dot: 'bg-violet-500' },
+  delivered:         { label: 'Delivered', color: 'bg-emerald-50 text-emerald-600 border-emerald-100', dot: 'bg-emerald-500' },
   Delivered:         { label: 'Delivered', color: 'bg-emerald-50 text-emerald-600 border-emerald-100', dot: 'bg-emerald-500' },
 };
 const TABS = [
@@ -162,11 +166,12 @@ function StatusPill({ status }) {
 
 // ─── Inline Status Select ─────────────────────────────────────────────────────
 function StatusSelect({ orderId, current, onChange }) {
+  const normVal = (current === 'placed' || current === 'Paid') ? 'Accepted' : (current === 'out_for_delivery' ? 'Out for Delivery' : (current === 'preparing' ? 'Preparing' : (current === 'delivered' ? 'Delivered' : current)));
   const cfg = STATUS_CONFIG[current] || STATUS_CONFIG.Accepted;
   return (
     <div className="relative inline-flex items-center">
       <span className={"absolute left-2.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full pointer-events-none " + cfg.dot} />
-      <select value={current} onChange={e=>onChange(orderId,e.target.value)}
+      <select value={normVal} onChange={e=>onChange(orderId,e.target.value)}
         className={"appearance-none text-xs font-bold rounded-xl border cursor-pointer outline-none transition-all " + cfg.color} style={{ padding: "6px 28px 6px 20px", maxWidth: "120px" }}>
         <option value="Accepted">Accepted</option>
         <option value="Preparing">Preparing</option>
@@ -311,7 +316,20 @@ export default function AdminPage() {
     } catch(err){ console.error(err); }
   };
   const toggleStock  = async item => updateDoc(doc(db,'menu',item.id),{inStock:!item.inStock});
-  const updateStatus = async (id,status) => updateDoc(doc(db,'orders',id),{status});
+  const updateStatus = async (id, status) => {
+    const updateData = { status };
+    const nowStr = new Date().toISOString();
+    if (status === 'Accepted' || status === 'placed') {
+      updateData.placedAt = nowStr;
+    } else if (status === 'Preparing' || status === 'preparing') {
+      updateData.preparingAt = nowStr;
+    } else if (status === 'Out for Delivery' || status === 'out_for_delivery') {
+      updateData.outForDeliveryAt = nowStr;
+    } else if (status === 'Delivered' || status === 'delivered') {
+      updateData.deliveredAt = nowStr;
+    }
+    await updateDoc(doc(db, 'orders', id), updateData);
+  };
   const deleteMenuItem = async (id,name) => { if(window.confirm('Delete "'+name+'"?')) await deleteDoc(doc(db,'menu',id)); };
   const deleteOrder    = async id => { if(window.confirm('Delete this order?')) await deleteDoc(doc(db,'orders',id)); };
   const handleLogout   = async () => { await logout(); router.push('/'); };

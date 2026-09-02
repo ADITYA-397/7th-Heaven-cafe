@@ -1,11 +1,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Navbar from "../../components/Navbar";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../firebase";
-import { OrderConfirmationCard } from "../../components/order-confirmation-card";
 import InvoiceModal from "../../components/InvoiceModal";
 import CartDrawer from "../../components/CartDrawer";
 import ProfileDrawer from "../../components/ProfileDrawer";
@@ -13,6 +13,7 @@ import ProfileDrawer from "../../components/ProfileDrawer";
 const DELIVERY_FEE = 40;
 
 export default function CheckoutPage() {
+  const router = useRouter();
   const { cartItems, clearCart } = useCart();
   const { user, profile } = useAuth();
 
@@ -75,32 +76,32 @@ export default function CheckoutPage() {
     if (e) e.preventDefault();
     setIsProcessing(true);
 
+    const now = new Date();
+    const estDelivery = new Date(now.getTime() + 25 * 60 * 1000).toISOString();
+
     try {
       const ok = await loadRazorpay();
       if (!ok) {
         // Fallback demo order placement if offline/no Razorpay key
         const od = {
           userId: user?.uid || "guest",
-          customerName: name,
-          customerAddress: address,
-          customerPhone: phone,
+          customerName: name || "Valued Customer",
+          customerEmail: email || user?.email || "",
+          customerAddress: address || "Dine-in / Pickup",
+          customerPhone: phone || "",
           items: cartItems.length > 0 ? cartItems : [{ name: "Warm Cafe Order", price: subtotal, qty: 1 }],
           total: subtotal,
           grandTotal: total,
-          status: "Paid",
-          timestamp: new Date().toISOString(),
+          status: "placed",
+          timestamp: now.toISOString(),
+          placedAt: now.toISOString(),
+          estimatedDeliveryAt: estDelivery,
           paymentMethod: `Online - ${paymentTab}`,
         };
-        try {
-          const ref = await addDoc(collection(db, "orders"), od);
-          od.id = ref.id;
-        } catch (dbErr) {
-          od.id = "ORD-" + Math.floor(100000 + Math.random() * 900000);
-        }
+        const ref = await addDoc(collection(db, "orders"), od);
         clearCart();
-        setLastOrder(od);
-        setOrderCompleteMsg("Order Placed Successfully!");
         setIsProcessing(false);
+        router.push(`/track-order/${ref.id}`);
         return;
       }
 
@@ -116,21 +117,23 @@ export default function CheckoutPage() {
         // Fallback mock order
         const od = {
           userId: user?.uid || "guest",
-          customerName: name,
-          customerAddress: address,
-          customerPhone: phone,
+          customerName: name || "Valued Customer",
+          customerEmail: email || user?.email || "",
+          customerAddress: address || "Dine-in / Pickup",
+          customerPhone: phone || "",
           items: cartItems.length > 0 ? cartItems : [{ name: "Warm Cafe Order", price: subtotal, qty: 1 }],
           total: subtotal,
           grandTotal: total,
-          status: "Paid",
-          timestamp: new Date().toISOString(),
+          status: "placed",
+          timestamp: now.toISOString(),
+          placedAt: now.toISOString(),
+          estimatedDeliveryAt: estDelivery,
           paymentMethod: `Demo - ${paymentTab}`,
         };
         const ref = await addDoc(collection(db, "orders"), od);
         clearCart();
-        setLastOrder({ id: ref.id, ...od });
-        setOrderCompleteMsg("Order Placed Successfully!");
         setIsProcessing(false);
+        router.push(`/track-order/${ref.id}`);
         return;
       }
 
@@ -156,45 +159,43 @@ export default function CheckoutPage() {
             items: cartItems.length > 0 ? cartItems : [{ name: "Warm Cafe Order", price: subtotal, qty: 1 }],
             total: subtotal,
             grandTotal: total,
-            status: "Paid",
-            timestamp: new Date().toISOString(),
-            paymentMethod: `Razorpay - ${paymentTab}`,
+            status: "placed",
+            timestamp: now.toISOString(),
+            placedAt: now.toISOString(),
+            estimatedDeliveryAt: estDelivery,
+            paymentMethod: `Paid via Razorpay (${paymentTab})`,
             razorpayPaymentId: resp.razorpay_payment_id,
             razorpayOrderId: resp.razorpay_order_id,
           };
           const ref = await addDoc(collection(db, "orders"), od);
-          const finalOrder = { id: ref.id, ...od };
           clearCart();
-          setLastOrder(finalOrder);
-          setOrderCompleteMsg("Payment received successfully!");
           setIsProcessing(false);
 
-          // Send confirmation invoice email
+          // Send confirmation invoice email in background
           const targetEmail = email || user?.email;
           if (targetEmail) {
-            try {
-              await fetch("/api/send-order-email", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  orderEmail: targetEmail,
-                  customerName: od.customerName,
-                  customerPhone: od.customerPhone,
-                  orderId: ref.id,
-                  subtotal: od.total,
-                  taxes: taxes,
-                  deliveryFee: DELIVERY_FEE,
-                  total: od.grandTotal,
-                  items: od.items,
-                  address: od.customerAddress,
-                  paymentMethod: `Razorpay (${paymentTab})`,
-                  paymentId: resp.razorpay_payment_id,
-                }),
-              });
-            } catch (emailErr) {
-              console.error("Failed to send order email:", emailErr);
-            }
+            fetch("/api/send-order-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                orderEmail: targetEmail,
+                customerName: od.customerName,
+                customerPhone: od.customerPhone,
+                orderId: ref.id,
+                subtotal: od.total,
+                taxes: taxes,
+                deliveryFee: DELIVERY_FEE,
+                total: od.grandTotal,
+                items: od.items,
+                address: od.customerAddress,
+                paymentMethod: `Razorpay (${paymentTab})`,
+                paymentId: resp.razorpay_payment_id,
+              }),
+            }).catch((emailErr) => console.error("Email send error:", emailErr));
           }
+
+          // Redirect immediately to live tracking page
+          router.push(`/track-order/${ref.id}`);
         },
         modal: {
           ondismiss: () => {
@@ -215,20 +216,23 @@ export default function CheckoutPage() {
       // Create order as fallback
       const od = {
         userId: user?.uid || "guest",
-        customerName: name,
-        customerAddress: address,
-        customerPhone: phone,
+        customerName: name || "Valued Customer",
+        customerEmail: email || user?.email || "",
+        customerAddress: address || "Dine-in / Pickup",
+        customerPhone: phone || "",
         items: cartItems.length > 0 ? cartItems : [{ name: "Warm Cafe Order", price: subtotal, qty: 1 }],
         total: subtotal,
         grandTotal: total,
-        status: "Paid",
-        timestamp: new Date().toISOString(),
+        status: "placed",
+        timestamp: now.toISOString(),
+        placedAt: now.toISOString(),
+        estimatedDeliveryAt: estDelivery,
         paymentMethod: `Direct - ${paymentTab}`,
       };
+      const ref = await addDoc(collection(db, "orders"), od);
       clearCart();
-      setLastOrder({ id: "ORD-" + Date.now().toString().slice(-6), ...od });
-      setOrderCompleteMsg("Order Placed!");
       setIsProcessing(false);
+      router.push(`/track-order/${ref.id}`);
     }
   };
 
