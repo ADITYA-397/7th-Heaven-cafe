@@ -1,9 +1,14 @@
 "use client";
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useCart } from '../context/CartContext';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Plus, ArrowRight } from 'lucide-react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useGSAP } from '@gsap/react';
+
+gsap.registerPlugin(ScrollTrigger);
 
 // Premium photo mapping for specific items
 
@@ -21,7 +26,7 @@ const ScallopedDivider = ({ position = "top", color = "#EAE3D9" }) => {
 
 const VintageMenuItem = ({ item, addToCart }) => {
   return (
-    <div className="group border-b border-[#3B2E28]/10 last:border-0 transition-all duration-500 hover:bg-[#3B2E28]/[0.02] -mx-4 rounded-xl" style={{ padding: "32px 16px" }}>
+    <div className="menu-item-anim group border-b border-[#3B2E28]/10 last:border-0 transition-all duration-500 hover:bg-[#3B2E28]/[0.02] -mx-4 rounded-xl" style={{ padding: "32px 16px" }}>
       <div className="menu-item-row relative">
         <h4 className="menu-item-name font-heading">{item.name}</h4>
         <div className="menu-item-dots" />
@@ -47,10 +52,43 @@ const VintageMenuItem = ({ item, addToCart }) => {
 };
 
 export default function MenuGrid() {
+  const container = useRef();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   const { addToCart } = useCart();
+
+  useGSAP(() => {
+    if (loading) return;
+
+    gsap.from('.menu-header-anim', {
+      y: 35,
+      opacity: 0,
+      duration: 0.8,
+      stagger: 0.1,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: container.current,
+        start: 'top 85%',
+        toggleActions: 'play none none reverse'
+      }
+    });
+
+    gsap.from('.menu-item-anim', {
+      y: 30,
+      opacity: 0,
+      duration: 0.6,
+      stagger: 0.05,
+      ease: 'power2.out',
+      scrollTrigger: {
+        trigger: container.current,
+        start: 'top 80%',
+        toggleActions: 'play none none none'
+      }
+    });
+
+    ScrollTrigger.refresh();
+  }, { scope: container, dependencies: [loading, isExpanded, items.length] });
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "menu"), (snapshot) => {
@@ -83,28 +121,28 @@ export default function MenuGrid() {
   }
 
   return (
-    <section id="menu" className="bg-[#EAE3D9] relative overflow-hidden font-serif scroll-mt-28" style={{ padding: "96px 24px 72px 24px" }}>
+    <section id="menu" ref={container} className="bg-[#EAE3D9] relative overflow-hidden font-serif scroll-mt-28" style={{ padding: "96px 24px 72px 24px" }}>
       <ScallopedDivider position="top" color="#EAE3D9" />
       <ScallopedDivider position="bottom" color="#EAE3D9" />
 
       <div className="container mx-auto relative z-10">
         
         {/* === HEADER === */}
-        <div className="flex flex-col items-center text-center mb-32 space-y-6">
-          <div className="inline-flex items-center gap-3 border-y border-[#C28751]/20" style={{ padding: "12px 32px" }}>
+        <div className="menu-header-trigger flex flex-col items-center text-center mb-12 md:mb-16 space-y-4 md:space-y-6">
+          <div className="menu-header-anim inline-flex items-center gap-3 border-y border-[#C28751]/20" style={{ padding: "10px 28px" }}>
              <div className="w-1.5 h-1.5 rounded-full bg-[#C28751]" />
-             <span className="text-sm uppercase tracking-[0.4em] font-heading font-medium text-[#C28751]">The Selection</span>
+             <span className="text-xs md:text-sm uppercase tracking-[0.4em] font-heading font-medium text-[#C28751]">The Selection</span>
              <div className="w-1.5 h-1.5 rounded-full bg-[#C28751]" />
           </div>
-          <h2 className="text-5xl md:text-7xl font-heading font-black text-[#3B2E28] tracking-tighter leading-tight mb-4">Our Menu</h2>
-          <div className="menu-ornament-top" />
-          <p className="max-w-xl text-[#5C4A3E] text-base md:text-lg italic leading-relaxed opacity-80 font-serif text-center mt-12 px-4">
+          <h2 className="menu-header-anim text-5xl md:text-7xl font-heading font-black text-[#3B2E28] tracking-tighter leading-tight">Our Menu</h2>
+          <div className="menu-header-anim menu-ornament-top" />
+          <p className="menu-header-anim max-w-xl text-[#5C4A3E] text-base md:text-lg italic leading-relaxed opacity-80 font-serif text-center mt-4 md:mt-6 px-4">
              Experience the perfect symphony of flavor and craft, where every bean tells a story.
           </p>
         </div>
 
         {/* === MENU CONTENT === */}
-        <div className="transition-all duration-1000 ease-in-out">
+        <div className="menu-items-trigger transition-all duration-1000 ease-in-out">
           {!isExpanded ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-32 gap-y-0">
               {featuredItems.map(item => (

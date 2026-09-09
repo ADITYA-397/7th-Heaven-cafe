@@ -468,30 +468,7 @@ ul {
     opacity: 0.7;
 }
 
-/* ================= ANIMATIONS & UTILITIES ================= */
-
-/* Reveal Animations setup */
-.fade-in-up {
-    opacity: 0;
-    transform: translateY(40px);
-    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-}
-.fade-in-left {
-    opacity: 0;
-    transform: translateX(-40px);
-    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-}
-.fade-in-right {
-    opacity: 0;
-    transform: translateX(40px);
-    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-}
-
-/* Class added by JS */
-.is-visible {
-    opacity: 1;
-    transform: translate(0);
-}
+/* ================= ANIMATIONS & UTILITIES ================= *//* Reveal Animations removed, GSAP will handle all animations */
 
 /* ================= MEDIA QUERIES & RESPONSIVENESS ================= */
 @media (max-width: 1024px) {

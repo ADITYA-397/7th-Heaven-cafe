@@ -1,10 +1,30 @@
 "use client";
-import React from 'react';
+import React, { useRef } from 'react';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 
 export default function LocationSection() {
+  const container = useRef();
+
+  useGSAP(() => {
+    gsap.from('.location-anim', {
+      y: 40,
+      opacity: 0,
+      duration: 0.8,
+      stagger: 0.15,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: container.current,
+        start: 'top 80%',
+        toggleActions: 'play none none reverse'
+      }
+    });
+  }, { scope: container });
+
   return (
     <section 
       id="contact" 
+      ref={container}
       className="location-section relative scroll-mt-24 w-full"
       style={{ 
         backgroundColor: '#EFE8DE',
@@ -24,7 +44,7 @@ export default function LocationSection() {
         
         {/* Section Header - Centered in middle */}
         <div className="flex flex-col items-center text-center mb-12 lg:mb-16">
-          <div className="inline-flex items-center gap-3 border-y border-[#C28751]/30 py-2 px-6 mb-4">
+          <div className="location-anim inline-flex items-center gap-3 border-y border-[#C28751]/30 py-2 px-6 mb-4">
             <div className="w-1.5 h-1.5 rounded-full bg-[#C28751]" />
             <span className="text-xs uppercase tracking-[0.35em] font-semibold text-[#C08552]">
               Visit Us
@@ -33,7 +53,7 @@ export default function LocationSection() {
           </div>
 
           <h2 
-            className="text-[#2E2620] tracking-tight leading-tight text-center"
+            className="location-anim text-[#2E2620] tracking-tight leading-tight text-center"
             style={{ 
               fontFamily: "'Fraunces', 'Playfair Display', serif",
               fontSize: 'clamp(2.2rem, 4vw, 3.5rem)',
@@ -43,7 +63,7 @@ export default function LocationSection() {
             Find Your Way To Brewline.
           </h2>
           <p 
-            className="text-[#6E5D53] text-sm md:text-base font-normal max-w-xl mx-auto mt-4 leading-relaxed text-center"
+            className="location-anim text-[#6E5D53] text-sm md:text-base font-normal max-w-xl mx-auto mt-4 leading-relaxed text-center"
             style={{ fontFamily: "'Poppins', sans-serif" }}
           >
             Warm brews, delightful spaces, and handcrafted treats await you at our flagship sanctuary
@@ -51,13 +71,7 @@ export default function LocationSection() {
         </div>
 
         {/* Two-Column Grid: Map (Left) + Contact Info (Right) - Centered in Middle */}
-        <div 
-          className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-stretch"
-          style={{
-            maxWidth: '1080px',
-            margin: '0 auto'
-          }}
-        >
+        <div className="location-anim grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-stretch" style={{ maxWidth: '1080px', margin: '0 auto' }}>
           
           {/* Left Column: Embedded Google Map */}
           <div className="lg:col-span-6 flex flex-col">

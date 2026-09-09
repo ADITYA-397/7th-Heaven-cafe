@@ -3,6 +3,10 @@
 import { useEffect, useRef } from 'react';
 import Lenis from 'lenis';
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useGSAP } from '@gsap/react';
+
+gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 export default function SmoothScroll({ children }) {
   const lenisRef = useRef(null);
@@ -21,6 +25,8 @@ export default function SmoothScroll({ children }) {
     lenisRef.current = lenis;
 
     // Sync Lenis with GSAP Ticker for buttery smooth frame interpolation
+    lenis.on('scroll', ScrollTrigger.update);
+
     const updateTicker = (time) => {
       lenis.raf(time * 1000);
     };

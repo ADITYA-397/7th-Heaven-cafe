@@ -1,17 +1,36 @@
 "use client";
-import React from 'react';
+import React, { useRef } from 'react';
 import Link from 'next/link';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 
 export default function Hero() {
+  const container = useRef();
+
+  useGSAP(() => {
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+    // Initial state setup for animation targets
+    gsap.set('.hero-anim', { y: 40, opacity: 0 });
+
+    tl.to('.hero-anim', {
+      y: 0,
+      opacity: 1,
+      duration: 1,
+      stagger: 0.15,
+      delay: 0.2
+    });
+  }, { scope: container });
+
   return (
-    <header id="home" className="hero-cinematic">
+    <header id="home" className="hero-cinematic" ref={container}>
       {/* Background Gradient Overlay */}
       <div className="hero-gradient-overlay"></div>
 
       <div className="hero-container">
         
         {/* Left Content Column */}
-        <div className="hero-content-left fade-in-up is-visible">
+        <div className="hero-content-left hero-anim">
           <div className="hero-overline-group">
             <span className="hero-overline-line"></span>
             <span className="hero-overline-text">BREWLINE COFFEE & PEOPLE</span>
@@ -31,14 +50,11 @@ export default function Hero() {
             <button onClick={() => document.getElementById('menu')?.scrollIntoView({ behavior: 'smooth' })} className="btn-primary-warm">
               Explore Menu <span>→</span>
             </button>
-            <button onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })} className="btn-secondary-transparent">
-              Our Story
-            </button>
           </div>
         </div>
 
         {/* Right Floating Card */}
-        <div className="hero-content-right fade-in-up is-visible" style={{ animationDelay: '0.2s' }}>
+        <div className="hero-content-right hero-anim">
           <div className="floating-glass-card">
             <div className="card-header">
               <h3 className="card-title">Today's ritual</h3>
@@ -72,7 +88,7 @@ export default function Hero() {
 
       {/* Bottom Indicators */}
       <div className="hero-bottom-indicators">
-        <div className="scroll-indicator fade-in-up is-visible" style={{ animationDelay: '0.4s' }}>
+        <div className="scroll-indicator hero-anim">
           <div className="scroll-icon">
             <div className="scroll-wheel"></div>
           </div>
@@ -81,7 +97,7 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className="brand-signature fade-in-up is-visible" style={{ animationDelay: '0.6s' }}>
+        <div className="brand-signature hero-anim">
           Good Coffee<br/>Better People
         </div>
       </div>
