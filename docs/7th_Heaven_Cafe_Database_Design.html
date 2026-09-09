@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Brewline Cafe: Database Design</title>
+<style>
+  @page {
+    size: A4;
+    margin: 18mm 18mm 18mm 18mm;
+  }
+  * {
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #000000;
+    background-color: #FFFFFF;
+    line-height: 1.45;
+    font-size: 10pt;
+    margin: 0;
+    padding: 0;
+  }
+  h1 {
+    font-size: 21pt;
+    font-weight: bold;
+    text-align: center;
+    margin: 0 0 16px 0;
+    color: #000000;
+  }
+  h3 {
+    font-size: 11pt;
+    font-weight: bold;
+    color: #000000;
+    margin-top: 14px;
+    margin-bottom: 4px;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  p {
+    margin: 0 0 8px 0;
+    font-size: 9.5pt;
+    text-align: justify;
+  }
+  ol {
+    margin: 0 0 12px 0;
+    padding-left: 20px;
+  }
+  li {
+    margin-bottom: 7px;
+    font-size: 9.5pt;
+    text-align: justify;
+  }
+  li strong {
+    font-weight: bold;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 4px;
+    margin-bottom: 12px;
+    font-size: 9pt;
+  }
+  tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  th, td {
+    border: 1px solid #000000;
+    padding: 5px 8px;
+    text-align: left;
+    vertical-align: top;
+    color: #000000;
+  }
+  th {
+    font-weight: bold;
+    background-color: #FFFFFF;
+  }
+  .page-break {
+    page-break-before: always;
+    break-before: always;
+  }
+</style>
+</head>
+<body>
+
+<h1>Brewline Cafe: Database Design</h1>
+
+<p>This document outlines the database design for the Brewline Cafe Web Platform, implemented using Google Cloud Firestore (NoSQL) and Firebase Web SDK. The architecture leverages document-based storage, embedding arrays for point-in-time snapshots (order items) while referencing related entities (users and orders).</p>
+
+<h3>1. User (Admin &amp; Customer) Collection</h3>
+<p>Stores registered customers, administrators, and their authentication credentials.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 28%;">Field Name</th>
+      <th style="width: 22%;">Data Type</th>
+      <th style="width: 50%;">Constraints / Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>uid</code></td>
+      <td>String</td>
+      <td>Primary Key. Matches Firebase Auth UID.</td>
+    </tr>
+    <tr>
+      <td><code>name</code></td>
+      <td>String</td>
+      <td>Required. Full name of the user or admin.</td>
+    </tr>
+    <tr>
+      <td><code>email</code></td>
+      <td>String</td>
+      <td>Required, Unique. Used for login and invoices.</td>
+    </tr>
+    <tr>
+      <td><code>phone</code></td>
+      <td>String</td>
+      <td>Optional. Contact phone number.</td>
+    </tr>
+    <tr>
+      <td><code>role</code></td>
+      <td>String</td>
+      <td>Required. Enum: ['customer', 'kitchen', 'admin']. Default: 'customer'.</td>
+    </tr>
+    <tr>
+      <td><code>addresses</code></td>
+      <td>Array of Objects</td>
+      <td>Saved customer delivery address list.</td>
+    </tr>
+    <tr>
+      <td><code>createdAt</code></td>
+      <td>Timestamp</td>
+      <td>Timestamp when the account was registered.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>2. MenuItem Collection</h3>
+<p>Stores individual food and beverage items offered by Brewline Cafe.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 28%;">Field Name</th>
+      <th style="width: 22%;">Data Type</th>
+      <th style="width: 50%;">Constraints / Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>id</code></td>
+      <td>String</td>
+      <td>Primary Key, Auto-generated document ID.</td>
+    </tr>
+    <tr>
+      <td><code>name</code></td>
+      <td>String</td>
+      <td>Required. Name of the food/beverage item.</td>
+    </tr>
+    <tr>
+      <td><code>description</code></td>
+      <td>String</td>
+      <td>Optional. Detailed description of the item.</td>
+    </tr>
+    <tr>
+      <td><code>price</code></td>
+      <td>Number</td>
+      <td>Required. Current selling price in INR (₹).</td>
+    </tr>
+    <tr>
+      <td><code>category</code></td>
+      <td>String</td>
+      <td>Required. Category grouping on customer menu.</td>
+    </tr>
+    <tr>
+      <td><code>imageUrl</code></td>
+      <td>String</td>
+      <td>Optional. Cloud Storage URL for item photo.</td>
+    </tr>
+    <tr>
+      <td><code>available</code></td>
+      <td>Boolean</td>
+      <td>Default: true. Toggles customer menu visibility.</td>
+    </tr>
+    <tr>
+      <td><code>addons</code></td>
+      <td>Array of Objects</td>
+      <td>Optional addon customization options with extra prices.</td>
+    </tr>
+    <tr>
+      <td><code>popularity</code></td>
+      <td>Number</td>
+      <td>Default: 0. Tracks total quantity ordered across sales.</td>
+    </tr>
+    <tr>
+      <td><code>createdAt</code></td>
+      <td>Timestamp</td>
+      <td>Timestamp when the menu item was created.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<h3>3. Order Collection</h3>
+<p>Records customer transactions, encapsulating a point-in-time snapshot of the cart and order lifecycle status.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 28%;">Field Name</th>
+      <th style="width: 22%;">Data Type</th>
+      <th style="width: 50%;">Constraints / Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>id</code></td>
+      <td>String</td>
+      <td>Primary Key, Auto-generated document ID.</td>
+    </tr>
+    <tr>
+      <td><code>orderNumber</code></td>
+      <td>String</td>
+      <td>Required. Formatted sequential order ID (e.g., '7H-20260303-0042').</td>
+    </tr>
+    <tr>
+      <td><code>userId</code></td>
+      <td>String</td>
+      <td>Required. Reference to User uid, or 'guest'.</td>
+    </tr>
+    <tr>
+      <td><code>customerName</code></td>
+      <td>String</td>
+      <td>Required. Name provided by customer.</td>
+    </tr>
+    <tr>
+      <td><code>customerEmail</code></td>
+      <td>String</td>
+      <td>Required. Email address for invoice receipt.</td>
+    </tr>
+    <tr>
+      <td><code>customerPhone</code></td>
+      <td>String</td>
+      <td>Required. Phone number for delivery updates.</td>
+    </tr>
+    <tr>
+      <td><code>customerAddress</code></td>
+      <td>String</td>
+      <td>Required. Complete delivery address.</td>
+    </tr>
+    <tr>
+      <td><code>items</code></td>
+      <td>Array of Objects</td>
+      <td>Required. Embedded historical snapshot of items.</td>
+    </tr>
+    <tr>
+      <td><code>items.menuItemId</code></td>
+      <td>String</td>
+      <td>Required. Reference to MenuItem document ID.</td>
+    </tr>
+    <tr>
+      <td><code>items.name</code></td>
+      <td>String</td>
+      <td>Required. Snapshot of item name at time of order.</td>
+    </tr>
+    <tr>
+      <td><code>items.price</code></td>
+      <td>Number</td>
+      <td>Required. Snapshot of item price at time of order.</td>
+    </tr>
+    <tr>
+      <td><code>items.quantity</code></td>
+      <td>Number</td>
+      <td>Required. Number of units ordered.</td>
+    </tr>
+    <tr>
+      <td><code>subtotal</code></td>
+      <td>Number</td>
+      <td>Sum of (price * quantity) for all line items.</td>
+    </tr>
+    <tr>
+      <td><code>taxes</code></td>
+      <td>Number</td>
+      <td>Calculated 5% GST tax amount.</td>
+    </tr>
+    <tr>
+      <td><code>deliveryFee</code></td>
+      <td>Number</td>
+      <td>Delivery charge (₹40 or ₹0 if subtotal &ge; ₹500).</td>
+    </tr>
+    <tr>
+      <td><code>totalAmount</code></td>
+      <td>Number</td>
+      <td>Required. Final net payable amount.</td>
+    </tr>
+    <tr>
+      <td><code>paymentMethod</code></td>
+      <td>String</td>
+      <td>Required. Enum: ['Online (Razorpay)', 'Cash on Delivery'].</td>
+    </tr>
+    <tr>
+      <td><code>status</code></td>
+      <td>String</td>
+      <td>Required. Enum: ['Placed', 'Preparing', 'Out for Delivery', 'Delivered']. Default: 'Placed'.</td>
+    </tr>
+    <tr>
+      <td><code>paymentStatus</code></td>
+      <td>String</td>
+      <td>Required. Enum: ['Pending', 'Paid', 'Failed'].</td>
+    </tr>
+    <tr>
+      <td><code>createdAt</code></td>
+      <td>Timestamp</td>
+      <td>Timestamp of when the order was placed.</td>
+    </tr>
+    <tr>
+      <td><code>estimatedDeliveryAt</code></td>
+      <td>Timestamp</td>
+      <td>Calculated delivery ETA for live customer tracking.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<h3>4. Counter Collection</h3>
+<p>A utility collection used to generate concurrent-safe, sequential order numbers for customer invoices and kitchen ticketing.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 28%;">Field Name</th>
+      <th style="width: 22%;">Data Type</th>
+      <th style="width: 50%;">Constraints / Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>_id</code></td>
+      <td>String</td>
+      <td>Primary Key (e.g., 'order_counter').</td>
+    </tr>
+    <tr>
+      <td><code>seq</code></td>
+      <td>Number</td>
+      <td>Required. Tracks the last assigned order sequence number. Default: 0.</td>
+    </tr>
+    <tr>
+      <td><code>updatedAt</code></td>
+      <td>Timestamp</td>
+      <td>Timestamp of last sequence increment.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Relationships &amp; Data Integrity Rules</h3>
+<ol>
+  <li><strong>Multi-Role Isolation:</strong> Every User, MenuItem, and Order document is protected by Firestore Security Rules. Customers have strictly scoped access to read/write their own orders and profile documents, while kitchen staff and administrators possess elevated privileges for status progression and menu catalog updates.</li>
+  <li><strong>Snapshot Pattern (OrderItems):</strong> Items within an order are embedded as an array of objects rather than traditional normalized foreign keys. The item's name and price are captured at the exact time of purchase. This guarantees that if an admin later updates the price of a MenuItem or deletes it entirely, historical order totals remain accurate and immutable.</li>
+  <li><strong>Auto-Incrementing Sequences:</strong> The Counter collection allows atomic increment operations via Firestore transactions to generate gapless sequential order numbers, avoiding race conditions during concurrent customer order placements.</li>
+</ol>
+
+</body>
+</html>

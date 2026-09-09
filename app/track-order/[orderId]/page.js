@@ -305,7 +305,7 @@ export default function TrackOrderPage({ params }) {
                 lineHeight: 1.2,
               }}
             >
-              Thank You for Choosing 7th Heaven!
+              Thank You for Choosing Brewline!
             </h1>
 
             {/* Subtext */}

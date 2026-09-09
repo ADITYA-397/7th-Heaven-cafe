@@ -10,7 +10,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const { user, profile } = useAuth();
-  const { cartItems, toggleCart, toggleProfile, toggleLogin } = useCart();
+  const { cartItems, toggleCart, toggleProfile } = useCart();
 
   const isSolid = scrolled || (pathname && pathname !== '/');
   const cartCount = cartItems.reduce((acc, item) => acc + item.qty, 0);
@@ -46,7 +46,7 @@ export default function Navbar() {
       transition: 'background-color 0.3s ease',
     }}>
       <div className="nav-container" style={{ maxWidth: "1160px", padding: "0 clamp(16px, 4vw, 64px)" }}>
-        <a href="/" className="logo" style={{ color: isSolid ? '#2E2620' : undefined, fontFamily: "'Playfair Display', serif", fontWeight: 700, zIndex: 101 }}>7th Heaven.</a>
+        <a href="/" className="logo" style={{ color: isSolid ? '#2E2620' : undefined, fontFamily: "'Playfair Display', serif", fontWeight: 700, zIndex: 101 }}>Brewline.</a>
         <ul className={`nav-links ${mobileMenu ? 'active' : ''}`}>
           <li><a href="/#home" onClick={() => setMobileMenu(false)} style={{ color: '#C08552', fontWeight: 600 }}>Home</a></li>
           <li><a href="/#about" onClick={() => setMobileMenu(false)} style={{ color: '#2E2620' }}>Our Story</a></li>

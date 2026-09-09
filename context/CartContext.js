@@ -7,37 +7,39 @@ export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
+
+  const getItemKey = (item) => item.id || item.name;
   
   const addToCart = (item) => {
+    const key = getItemKey(item);
     setCartItems(prev => {
-      const existing = prev.find(i => i.name === item.name);
+      const existing = prev.find(i => getItemKey(i) === key);
       if (existing) {
-        return prev.map(i => i.name === item.name ? { ...i, qty: i.qty + 1 } : i);
+        return prev.map(i => getItemKey(i) === key ? { ...i, qty: i.qty + 1 } : i);
       }
       return [...prev, { ...item, qty: 1 }];
     });
   };
 
-  const updateQuantity = (name, delta) => {
+  const updateQuantity = (identifier, delta) => {
     setCartItems(prev => {
-      const item = prev.find(i => i.name === name);
+      const item = prev.find(i => getItemKey(i) === identifier || i.name === identifier);
       if (!item) return prev;
+      const key = getItemKey(item);
       const newQty = item.qty + delta;
-      if (newQty <= 0) return prev.filter(i => i.name !== name);
-      return prev.map(i => i.name === name ? { ...i, qty: newQty } : i);
+      if (newQty <= 0) return prev.filter(i => getItemKey(i) !== key);
+      return prev.map(i => getItemKey(i) === key ? { ...i, qty: newQty } : i);
     });
   };
   
-  const removeFromCart = (name) => {
-    setCartItems(prev => prev.filter(item => item.name !== name));
+  const removeFromCart = (identifier) => {
+    setCartItems(prev => prev.filter(item => getItemKey(item) !== identifier && item.name !== identifier));
   };
   
   const clearCart = () => setCartItems([]);
 
   const toggleCart = () => setIsCartOpen(!isCartOpen);
   const toggleProfile = () => setIsProfileOpen(!isProfileOpen);
-  const toggleLogin = () => setIsLoginOpen(!isLoginOpen);
   
   const cartTotal = cartItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
   
@@ -45,8 +47,7 @@ export function CartProvider({ children }) {
     <CartContext.Provider value={{ 
       cartItems, addToCart, removeFromCart, updateQuantity, clearCart, 
       isCartOpen, setIsCartOpen, toggleCart, 
-      isProfileOpen, setIsProfileOpen, toggleProfile, 
-      isLoginOpen, setIsLoginOpen, toggleLogin,
+      isProfileOpen, setIsProfileOpen, toggleProfile,
       cartTotal 
     }}>
       {children}

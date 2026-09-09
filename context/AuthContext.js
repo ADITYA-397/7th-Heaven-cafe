@@ -7,9 +7,7 @@ import {
   createUserWithEmailAndPassword, 
   signOut, 
   GoogleAuthProvider, 
-  signInWithPopup,
-  RecaptchaVerifier,
-  signInWithPhoneNumber
+  signInWithPopup
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
@@ -51,7 +49,7 @@ export function AuthProvider({ children }) {
               setProfile({
                   name: currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : currentUser.phoneNumber) || 'Guest',
                   email: currentUser.email || '',
-                  dob: '', phone: currentUser.phoneNumber || '', newsletter: true, gender: '', addresses: [], photo: currentUser.photoURL || '', role: 'admin'
+                  dob: '', phone: currentUser.phoneNumber || '', newsletter: true, gender: '', addresses: [], photo: currentUser.photoURL || '', role: 'user'
               });
           }
         } else {
@@ -84,10 +82,6 @@ export function AuthProvider({ children }) {
     }
   };
   
-  const setupPhoneLogin = (phoneNumber, appVerifier) => {
-      return signInWithPhoneNumber(auth, phoneNumber, appVerifier);
-  };
-  
   const updateProfileObj = async (updates) => {
       if (!user) return;
       try {
@@ -102,7 +96,7 @@ export function AuthProvider({ children }) {
       }
   };
 
-  const value = { user, profile, login, signup, loginWithGoogle, logout, setupPhoneLogin, updateProfile: updateProfileObj };
+  const value = { user, profile, login, signup, loginWithGoogle, logout, updateProfile: updateProfileObj };
   
   return (
     <AuthContext.Provider value={value}>

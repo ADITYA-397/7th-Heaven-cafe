@@ -2,14 +2,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../context/CartContext";
-import { useAuth } from "../context/AuthContext";
-import { collection, addDoc } from "firebase/firestore";
-import { db } from "../firebase";
-import { ArrowLeft, Info, MapPin, User, Zap, Archive, CreditCard, FileText } from "lucide-react";
-import InvoiceModal from "./InvoiceModal";
-import { OrderConfirmationCard } from "./order-confirmation-card";
-
-const DELIVERY_FEE = 40;
+import { calculateOrderTotals, DEFAULT_DELIVERY_FEE } from "../lib/pricing";
 
 function TrashIcon() {
   return (
@@ -38,108 +31,19 @@ function CoffeeCup() {
 
 export default function CartDrawer() {
   const router = useRouter();
-  const { cartItems, isCartOpen, setIsCartOpen, toggleLogin, clearCart, updateQuantity } = useCart();
-  const { user, profile } = useAuth();
-
-  const [isProcessing, setIsProcessing]     = useState(false);
-  const [showPayment, setShowPayment]       = useState(false);
-  const [paymentMethod, setPaymentMethod]   = useState("Card");
-  const [upiId, setUpiId]                   = useState("");
-  const [selectedBank, setSelectedBank]     = useState("HDFC");
-  const [deliveryOption, setDeliveryOption] = useState("Express");
-  const [orderCompleteMsg, setOrderCompleteMsg] = useState("");
-  const [selectedAddress, setSelectedAddress] = React.useState("");
-  const [lastOrder, setLastOrder]           = useState(null);
-  const [isInvoiceOpen, setIsInvoiceOpen]   = useState(false);
-  const [suggestions, setSuggestions]       = useState("");
-  const [isNoContact, setIsNoContact]       = useState(false);
+  const { cartItems, isCartOpen, setIsCartOpen, clearCart, updateQuantity } = useCart();
 
   React.useEffect(() => {
-    if (isCartOpen || showPayment) document.body.style.overflow = "hidden";
+    if (isCartOpen) document.body.style.overflow = "hidden";
     else document.body.style.overflow = "";
     return () => { document.body.style.overflow = ""; };
-  }, [isCartOpen, showPayment]);
+  }, [isCartOpen]);
 
-  React.useEffect(() => {
-    if (profile?.addresses?.length > 0) setSelectedAddress(profile.addresses[0]);
-    else if (profile?.address) setSelectedAddress(profile.address);
-  }, [profile]);
-
-  const subtotal   = cartItems.reduce((s, i) => s + (i.price || 0) * i.qty, 0);
-  const taxes      = Math.round(subtotal * 0.05);
-  const total      = subtotal + taxes + (cartItems.length ? DELIVERY_FEE : 0);
-  const totalToPay = subtotal + subtotal * 0.05;
+  const { subtotal, taxes, deliveryFee, total } = calculateOrderTotals(cartItems, DEFAULT_DELIVERY_FEE);
 
   const handleCheckoutClick = () => {
     setIsCartOpen(false);
     router.push("/checkout");
-  };
-
-  const loadRazorpay = () => new Promise(resolve => {
-    if (window.Razorpay) return resolve(true);
-    const s = document.createElement("script");
-    s.src = "https://checkout.razorpay.com/v1/checkout.js";
-    s.onload = () => resolve(true); s.onerror = () => resolve(false);
-    document.body.appendChild(s);
-  });
-
-  const processPayment = async e => {
-    if (e) e.preventDefault();
-    setIsProcessing(true);
-    try {
-      if (paymentMethod === "Cash on Delivery") {
-        const od = {
-          userId: user.uid,
-          customerName: profile?.name || user.email || "Guest",
-          customerAddress: selectedAddress || "No address",
-          customerPhone: profile?.phone || "N/A",
-          items: cartItems, total: subtotal, grandTotal: totalToPay,
-          status: "Pending - Pay on Delivery",
-          timestamp: new Date().toISOString(), paymentMethod: "COD",
-          suggestions, noContactDelivery: isNoContact
-        };
-        const ref = await addDoc(collection(db, "orders"), od);
-        clearCart(); setShowPayment(false);
-        setLastOrder({ id: ref.id, ...od });
-        setOrderCompleteMsg("Success! Order placed, pay on delivery.");
-        setIsProcessing(false); return;
-      }
-      const ok = await loadRazorpay();
-      if (!ok) { alert("Razorpay failed to load."); setIsProcessing(false); return; }
-      const res  = await fetch("/api/razorpay", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount: totalToPay }) });
-      const data = await res.json();
-      if (!data.success) { alert("Payment init failed."); setIsProcessing(false); return; }
-      const opts = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_TYpo90mJ5uVdGk",
-        amount: data.order.amount, currency: data.order.currency,
-        name: "7th Heaven", description: "Order Payment", order_id: data.order.id,
-        prefill: { name: profile?.name || user.email, contact: profile?.phone || "" },
-        handler: async resp => {
-          const od = {
-            userId: user.uid, customerName: profile?.name || user.email,
-            customerAddress: selectedAddress, customerPhone: profile?.phone,
-            items: cartItems, total: subtotal, grandTotal: totalToPay,
-            status: "Paid", timestamp: new Date().toISOString(),
-            paymentMethod: `Razorpay - ${paymentMethod}`,
-            razorpayPaymentId: resp.razorpay_payment_id,
-            razorpayOrderId: resp.razorpay_order_id,
-            suggestions, noContactDelivery: isNoContact
-          };
-          const ref = await addDoc(collection(db, "orders"), od);
-          clearCart(); setShowPayment(false);
-          setLastOrder({ id: ref.id, ...od });
-          setOrderCompleteMsg("Payment received!"); setIsProcessing(false);
-        },
-        theme: { color: "#C08552" }
-      };
-      if (paymentMethod === "UPI" && upiId) { opts.prefill.method = "upi"; opts.prefill.vpa = upiId; }
-      else if (paymentMethod === "Net Banking" && selectedBank) { opts.prefill.method = "netbanking"; opts.prefill.bank = selectedBank; }
-      const rzp = new window.Razorpay(opts);
-      rzp.on("payment.failed", r => { alert("Payment Failed: " + r.error.description); setIsProcessing(false); });
-      rzp.open();
-    } catch (err) {
-      console.error(err); alert("Checkout error."); setIsProcessing(false);
-    }
   };
 
   if (!isCartOpen) return null;
@@ -190,7 +94,7 @@ export default function CartDrawer() {
                 textDecoration: "none",
               }}
             >
-              7th Heaven.
+              Brewline.
             </a>
             <button
               onClick={() => setIsCartOpen(false)}
@@ -240,7 +144,7 @@ export default function CartDrawer() {
                 lineHeight: 1.2,
               }}
             >
-              Your Heaven Cart
+              Your Brewline Cart
             </h1>
             <p
               style={{
@@ -540,7 +444,7 @@ export default function CartDrawer() {
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <span style={{ fontSize: "14px", color: "#8A7D6E" }}>Delivery Fee</span>
-                      <span style={{ fontSize: "14px", fontWeight: 500, color: "#2E2620" }}>&#8377;{DELIVERY_FEE}</span>
+                      <span style={{ fontSize: "14px", fontWeight: 500, color: "#2E2620" }}>&#8377;{deliveryFee}</span>
                     </div>
                   </div>
 
@@ -556,26 +460,25 @@ export default function CartDrawer() {
                   {/* Proceed to Checkout Button */}
                   <button
                     onClick={handleCheckoutClick}
-                    disabled={isProcessing}
                     style={{
                       width: "100%",
-                      backgroundColor: isProcessing ? "#A96F3F" : "#C08552",
+                      backgroundColor: "#C08552",
                       color: "#FFFFFF",
                       border: "none",
                       borderRadius: "9999px",
                       padding: "14px 20px",
                       fontSize: "15px",
                       fontWeight: 600,
-                      cursor: isProcessing ? "not-allowed" : "pointer",
+                      cursor: "pointer",
                       display: "block",
                       boxSizing: "border-box",
                       boxShadow: "0 2px 8px rgba(192, 133, 82, 0.25)",
                       transition: "background-color 0.2s, transform 0.1s",
                     }}
-                    onMouseEnter={e => { if (!isProcessing) e.currentTarget.style.backgroundColor = "#A96F3F"; }}
-                    onMouseLeave={e => { if (!isProcessing) e.currentTarget.style.backgroundColor = "#C08552"; }}
+                    onMouseEnter={e => { e.currentTarget.style.backgroundColor = "#A96F3F"; }}
+                    onMouseLeave={e => { e.currentTarget.style.backgroundColor = "#C08552"; }}
                   >
-                    {isProcessing ? "Processing..." : "Proceed to Checkout"}
+                    Proceed to Checkout
                   </button>
                 </div>
               </div>
@@ -584,147 +487,6 @@ export default function CartDrawer() {
         </div>
       </div>
 
-      {/* Checkout Modal */}
-      {showPayment && (
-        <div className="fixed inset-0 z-[2000] bg-[#f5f5f5] overflow-y-auto font-sans p-6 md:p-8">
-          <div className="max-w-[1150px] mx-auto pb-6 flex items-center">
-            <button onClick={() => setShowPayment(false)} className="bg-white w-10 h-10 rounded-full flex items-center justify-center shadow-sm text-gray-400 hover:text-gray-700">
-              <ArrowLeft size={20} strokeWidth={2.5}/>
-            </button>
-          </div>
-          <div className="max-w-[1150px] mx-auto pb-20 flex flex-col lg:flex-row gap-8 items-start w-full">
-            <div className="flex-1 flex flex-col gap-6">
-              <div className="bg-white rounded-[16px] p-6 shadow-sm border border-gray-200">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-[17px] font-bold text-gray-900">Delivery Details</h2>
-                  <div className="flex bg-[#f5f5f5] rounded-full p-1 gap-1 border border-gray-100">
-                    <button className="bg-white rounded-full px-4 py-1.5 text-[13px] font-bold text-gray-900 shadow-sm">Delivery</button>
-                    <button className="px-4 py-1.5 text-[13px] font-semibold text-gray-500">Pickup</button>
-                  </div>
-                </div>
-                <div className="flex gap-4 items-start pb-6 border-b border-gray-100">
-                  <div className="text-gray-400 mt-0.5"><MapPin size={20} strokeWidth={2}/></div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-[14px] text-gray-900 truncate pr-2">Delivery Address</span>
-                      <button className="text-[#C08552] font-semibold text-[13px] flex-shrink-0">Edit</button>
-                    </div>
-                    <p className="text-gray-500 text-[13px] mt-1 leading-relaxed">{selectedAddress || "No address saved — add one in your profile"}</p>
-                  </div>
-                </div>
-                <div className="flex gap-4 items-start pt-6">
-                  <div className="text-gray-400 mt-0.5"><User size={20} strokeWidth={2}/></div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-[14px] text-gray-900">{profile?.name || user?.email || "Guest"}</span>
-                      <button className="text-[#C08552] font-semibold text-[13px] flex-shrink-0">Edit</button>
-                    </div>
-                  </div>
-                </div>
-                <h3 className="text-[16px] font-bold text-gray-900 mt-8 mb-4">Delivery Options</h3>
-                <div className="flex flex-col gap-3">
-                  {[
-                    { id:"Express",    label:"Express",    sub:"15–20 min", badge:"Faster", Icon:Zap    },
-                    { id:"Standard",   label:"Standard",   sub:"30–40 min", badge:null,     Icon:Archive },
-                    { id:"Economical", label:"Economical", sub:"50–60 min", badge:null,     Icon:Archive },
-                  ].map(({ id, label, sub, badge, Icon }) => (
-                    <div key={id}
-                      onClick={() => setDeliveryOption(id)}
-                      className={`flex justify-between items-center p-4 rounded-[12px] cursor-pointer transition-colors ${deliveryOption===id?"border-[1.5px] border-[#C08552] bg-white":"border border-gray-100 bg-[#fbfbfb]"}`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${deliveryOption===id?"bg-[#f5ece3] text-[#C08552]":"bg-transparent text-gray-400"}`}>
-                          <Icon size={18}/>
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-[14px] text-gray-900">{label}</span>
-                            {badge && <span className="bg-[#C08552] text-white text-[9px] font-bold px-2 py-0.5 rounded-full">{badge}</span>}
-                          </div>
-                          <p className="text-gray-500 text-[13px] mt-0.5">{sub}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="bg-white rounded-[16px] p-6 shadow-sm border border-gray-200">
-                <h2 className="text-[17px] font-bold text-gray-900 mb-5">Payment</h2>
-                <div className="flex justify-between items-center">
-                  <div className="flex gap-4 items-center flex-1 min-w-0">
-                    <div className="w-12 h-10 rounded-xl bg-[#f5ece3] flex items-center justify-center text-[#C08552] border border-[#e8d5c0] flex-shrink-0">
-                      <CreditCard size={20} strokeWidth={2.5}/>
-                    </div>
-                    <div className="min-w-0">
-                      <span className="font-bold text-[14px] text-gray-900 block">Add your debit card</span>
-                      <p className="text-gray-500 text-[13px] mt-0.5">Pay securely with your card.</p>
-                    </div>
-                  </div>
-                  <button className="border border-[#C08552] text-[#C08552] rounded-full px-5 py-2 text-[12px] font-bold">+ Add Card</button>
-                </div>
-              </div>
-              <button
-                onClick={processPayment} disabled={isProcessing}
-                className="w-full text-white font-bold text-[15px] py-4 rounded-[14px] disabled:opacity-70"
-                style={{ backgroundColor:"#C08552" }}
-                onMouseEnter={e => { if(!isProcessing) e.currentTarget.style.backgroundColor="#A96F3F"; }}
-                onMouseLeave={e => { if(!isProcessing) e.currentTarget.style.backgroundColor="#C08552"; }}
-              >
-                {isProcessing ? "Processing…" : "Continue to payment"}
-              </button>
-            </div>
-            <div className="w-full lg:w-[380px] flex-shrink-0">
-              <div className="bg-white rounded-[16px] p-6 shadow-sm border border-gray-200">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-[17px] font-bold text-gray-900">Cart ({cartItems.length})</h2>
-                  <Info size={20} className="text-gray-400" strokeWidth={1.5}/>
-                </div>
-                <div className="flex flex-col gap-4 max-h-[300px] overflow-y-auto mb-6" style={{ scrollbarWidth:"none" }}>
-                  {cartItems.map((item, i) => (
-                    <div key={i} className="flex gap-4 items-center">
-                      {item.image
-                        ? <img src={item.image} alt={item.name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0"/>
-                        : <div className="w-12 h-12 rounded-xl bg-[#e8d5c0] flex-shrink-0 flex items-center justify-center"><FileText size={18} className="text-[#C08552]"/></div>
-                      }
-                      <div className="flex-1 min-w-0">
-                        <p className="font-bold text-[13px] text-gray-900 truncate">{item.name}</p>
-                        <p className="text-[12px] text-gray-500 mt-0.5">&#8377;{(item.price||0) * item.qty}</p>
-                      </div>
-                      <span className="w-6 h-6 rounded-full border border-gray-200 flex items-center justify-center text-[11px] font-bold text-gray-700 bg-white flex-shrink-0">{item.qty}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex flex-col gap-3 mb-4">
-                  <div className="flex justify-between text-[13px]"><span className="text-gray-400">Subtotal</span><span className="text-gray-700">&#8377;{subtotal}</span></div>
-                  <div className="flex justify-between text-[13px]"><span className="text-gray-400">GST (5%)</span><span className="text-gray-700">&#8377;{taxes}</span></div>
-                  <div className="flex justify-between text-[13px]"><span className="text-gray-400">Delivery</span><span className="text-gray-700">&#8377;{DELIVERY_FEE}</span></div>
-                </div>
-                <hr className="border-gray-200 my-3"/>
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-[15px] text-gray-900">Total</span>
-                  <span className="font-bold text-[18px] text-gray-900">&#8377;{total}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {orderCompleteMsg && lastOrder && (
-        <div className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-md flex items-center justify-center p-6">
-          <OrderConfirmationCard
-            orderId={lastOrder.id?.slice(-8).toUpperCase() || ""}
-            paymentMethod={lastOrder.paymentMethod || "Cash on Delivery"}
-            dateTime={new Date(lastOrder.timestamp).toLocaleString("en-IN", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit", hour12:true })}
-            totalAmount={new Intl.NumberFormat("en-IN", { style:"currency", currency:"INR" }).format(lastOrder.grandTotal || lastOrder.total || 0)}
-            onGoToAccount={() => { setOrderCompleteMsg(""); setIsCartOpen(false); }}
-            title="Order Placed!"
-            buttonText="Done"
-          />
-        </div>
-      )}
-
-      <InvoiceModal isOpen={isInvoiceOpen} onClose={() => setIsInvoiceOpen(false)} order={lastOrder}/>
     </>
   );
 }

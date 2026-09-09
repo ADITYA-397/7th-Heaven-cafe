@@ -402,7 +402,7 @@ export default function AdminPage() {
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-[#F97316] rounded-2xl flex items-center justify-center shadow-sm"><Coffee size={18} className="text-white"/></div>
-            <div><p className="font-bold text-gray-900 text-base">7th Heaven</p><p className="text-xs text-gray-500 font-medium">Cafe Admin</p></div>
+            <div><p className="font-bold text-gray-900 text-base">Brewline</p><p className="text-xs text-gray-500 font-medium">Cafe Admin</p></div>
           </div>
           <button onClick={()=>setMobileOpen(false)} className="text-gray-400 p-2 rounded-xl hover:bg-gray-50 transition-colors"><X size={20}/></button>
         </div>
@@ -414,7 +414,7 @@ export default function AdminPage() {
         <div className={"flex items-center gap-3 border-b border-gray-100 relative "+(!sidebarOpen?'justify-center px-0':'')} style={{ padding: sidebarOpen?"24px 20px":"24px 0" }}>
           <div className="w-9 h-9 bg-[#F97316] rounded-2xl flex items-center justify-center shrink-0 shadow-sm"><Coffee size={18} className="text-white"/></div>
           {sidebarOpen&&<>
-            <div className="min-w-0 flex-1 flex flex-col justify-center"><p className="font-bold text-gray-900 text-lg leading-none mb-1">7th Heaven</p><p className="text-xs text-gray-500 font-medium">Cafe Admin</p></div>
+            <div className="min-w-0 flex-1 flex flex-col justify-center"><p className="font-bold text-gray-900 text-lg leading-none mb-1">Brewline</p><p className="text-xs text-gray-500 font-medium">Cafe Admin</p></div>
             <button onClick={()=>setSidebarOpen(false)} className="text-gray-400 hover:text-gray-900 rounded-xl hover:bg-gray-50 shrink-0 transition-colors flex items-center justify-center" style={{ padding: "8px" }}><ChevronLeft size={18}/></button>
           </>}
           {!sidebarOpen&&<button onClick={()=>setSidebarOpen(true)} className="absolute -right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 bg-white border border-gray-100 rounded-full flex items-center justify-center text-gray-400 hover:text-[#F97316] shadow-md z-10 transition-colors"><ChevronRight size={14}/></button>}

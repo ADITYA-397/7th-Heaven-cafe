@@ -3,7 +3,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useCart } from '../context/CartContext';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Plus, ArrowRight, ChevronUp, Sparkles } from 'lucide-react';
+import { Plus, ArrowRight } from 'lucide-react';
 
 // Premium photo mapping for specific items
 

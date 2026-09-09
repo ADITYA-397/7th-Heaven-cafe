@@ -85,7 +85,7 @@ export async function POST(request) {
       <body>
         <div class="container">
           <div class="header">
-            <h1>7th Heaven Cafe</h1>
+            <h1>Brewline Cafe</h1>
             <p>Artisanal Bakehouse & Coffee</p>
           </div>
           
@@ -150,7 +150,7 @@ export async function POST(request) {
           </div>
 
           <div class="footer">
-            <p style="margin: 0 0 6px 0;"><strong>7th Heaven Cafe</strong> · Freshly crafted with love</p>
+            <p style="margin: 0 0 6px 0;"><strong>Brewline Cafe</strong> · Freshly crafted with love</p>
             <p style="margin: 0;">If you have any questions, reply directly to this email or call our cafe helpline.</p>
           </div>
         </div>
@@ -160,9 +160,9 @@ export async function POST(request) {
 
     try {
       const info = await transporter.sendMail({
-        from: `"7th Heaven Cafe" <${process.env.EMAIL_USER || 'orders@7thheaven.com'}>`,
+        from: `"Brewline Cafe" <${process.env.EMAIL_USER || 'orders@brewline.com'}>`,
         to: orderEmail,
-        subject: `🧾 Your 7th Heaven Cafe Order Invoice #${orderId.slice(-6).toUpperCase()}`,
+        subject: `🧾 Your Brewline Cafe Order Invoice #${orderId.slice(-6).toUpperCase()}`,
         html: htmlContent,
       });
 
@@ -188,9 +188,9 @@ export async function POST(request) {
       });
 
       const testInfo = await testTransporter.sendMail({
-        from: '"7th Heaven Cafe" <orders@7thheaven.com>',
+        from: '"Brewline Cafe" <orders@brewline.com>',
         to: orderEmail,
-        subject: `🧾 Your 7th Heaven Cafe Order Invoice #${orderId.slice(-6).toUpperCase()}`,
+        subject: `🧾 Your Brewline Cafe Order Invoice #${orderId.slice(-6).toUpperCase()}`,
         html: htmlContent,
       });
 

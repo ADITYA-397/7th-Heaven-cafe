@@ -4,7 +4,7 @@ export default function Footer() {
     <footer id="contact" className="footer">
       <div className="container footer-content fade-in-up is-visible">
         <div className="footer-section brand">
-          <h2>7th Heaven.</h2>
+          <h2>Brewline.</h2>
           <p>Lighting up your day, one cup at a time.</p>
           <div className="socials">
             <span className="social-icon">IG</span>
@@ -26,7 +26,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="footer-bottom">
-        <p>&copy; {new Date().getFullYear()} 7th Heaven. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} Brewline. All rights reserved.</p>
       </div>
     </footer>
   );

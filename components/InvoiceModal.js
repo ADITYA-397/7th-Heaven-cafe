@@ -73,11 +73,11 @@ export default function InvoiceModal({ order, isOpen, onClose }) {
                   <div className="w-24 sm:w-32 flex flex-col items-end">
                     <img 
                       src="/logo.png" 
-                      alt="7th Heaven Logo" 
+                      alt="Brewline Logo" 
                       className="w-full max-w-[120px] h-auto object-contain"
                       onError={(e) => {
                           e.target.onerror = null;
-                          e.target.src = "https://via.placeholder.com/150x50?text=7th+Heaven";
+                          e.target.src = "https://via.placeholder.com/150x50?text=Brewline";
                       }} 
                     />
                   </div>
@@ -110,11 +110,11 @@ export default function InvoiceModal({ order, isOpen, onClose }) {
                     <div>
                       <h3 className="font-bold text-gray-900 mb-1.5 text-[15px]">From</h3>
                       <p className="text-gray-500 leading-relaxed">
-                        7th Heaven Cafe<br />
+                        Brewline Cafe<br />
                         Baker Street 221B<br />
                         London, UK<br />
                         +44 20 7946 0958<br />
-                        CIF: 7THHEAVENUK
+                        CIF: BREWLINEUK
                       </p>
                     </div>
                   </div>
@@ -204,7 +204,7 @@ export default function InvoiceModal({ order, isOpen, onClose }) {
                   <div className="mb-3">
                     <h3 className="font-bold text-gray-900 mb-1 text-[11px]">Terms & conditions</h3>
                     <p className="text-[9pt] text-gray-500 leading-tight">
-                      1. Payment is due within 14 days of invoice date. 2. Late payments may incur a 5% monthly interest charge. 3. All sales are final unless otherwise agreed in writing. 4. Disputes must be raised within 7 days of receipt. 5. This invoice is governed by the laws of the United Kingdom. 6. For inquiries, contact info@7thheaven.com.
+                      1. Payment is due within 14 days of invoice date. 2. Late payments may incur a 5% monthly interest charge. 3. All sales are final unless otherwise agreed in writing. 4. Disputes must be raised within 7 days of receipt. 5. This invoice is governed by the laws of the United Kingdom. 6. For inquiries, contact info@brewline.com.
                     </p>
                   </div>
 
@@ -212,9 +212,9 @@ export default function InvoiceModal({ order, isOpen, onClose }) {
                   
                   {/* Contact Info */}
                   <div className="flex flex-row justify-between text-[11px] text-gray-800 font-bold">
-                    <span>info@7thheaven.com</span>
+                    <span>info@brewline.com</span>
                     <span>+000 123 456 789</span>
-                    <span>www.7thheaven.com</span>
+                    <span>www.brewline.com</span>
                   </div>
                 </div>
 

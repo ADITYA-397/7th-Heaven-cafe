@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Brewline Cafe: Business Logic Design</title>
+<style>
+  @page {
+    size: A4;
+    margin: 18mm 18mm 18mm 18mm;
+  }
+  * {
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #000000;
+    background-color: #FFFFFF;
+    line-height: 1.45;
+    font-size: 10pt;
+    margin: 0;
+    padding: 0;
+  }
+  h1 {
+    font-size: 21pt;
+    font-weight: bold;
+    text-align: center;
+    margin: 0 0 20px 0;
+    color: #000000;
+  }
+  h3 {
+    font-size: 12pt;
+    font-weight: bold;
+    color: #000000;
+    margin-top: 14px;
+    margin-bottom: 6px;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  p {
+    margin: 0 0 8px 0;
+    font-size: 10pt;
+    text-align: justify;
+  }
+  ul {
+    margin: 0 0 10px 0;
+    padding-left: 18px;
+    list-style-type: disc;
+  }
+  li {
+    margin-bottom: 5px;
+    font-size: 10pt;
+    text-align: justify;
+  }
+  li strong {
+    font-weight: bold;
+  }
+  .page-break {
+    page-break-before: always;
+    break-before: always;
+  }
+</style>
+</head>
+<body>
+
+<h1>Brewline Cafe: Business Logic Design</h1>
+
+<h3>Core Entities and Data Modeling</h3>
+<p>The system's data architecture is built on interconnected entities that track the lifecycle of a cafe's operations and online orders.</p>
+
+<ul>
+  <li><strong>User (Admin &amp; Customer):</strong> Represents cafe administrators, staff, and customers. It stores profile credentials, full name, email, phone number, and delivery addresses. Security logic mandates that all user authentication is handled via encrypted tokens (Firebase Auth) and passwords are never stored in plain text.</li>
+  <li><strong>MenuItem:</strong> Represents an artisanal food or beverage product. It includes attributes such as name, description, price, category (Hot/Cold Coffee, Refreshers, Milkshakes, Mug Cakes), and an image URL. An 'inStock' boolean field allows admins to toggle visibility on the customer menu without deleting the underlying record.</li>
+  <li><strong>Order:</strong> Represents a customer transaction. It is linked to the customer (or registered guest) and contains customer details, payment method (Online Razorpay or Cash), payment status, and the calculated total amount.</li>
+  <li><strong>OrderItem:</strong> Operates as a snapshot embedded within an Order. It records the item name, price, quantity, and selected customization addons at the exact time of purchase to preserve historical data integrity, regardless of future menu price changes.</li>
+  <li><strong>OrderSequence:</strong> A utility collection used to assign unique, sequential order invoice numbers for customer tracking and kitchen management.</li>
+</ul>
+
+<h3>Authentication and Role-Based Access</h3>
+<p>Business operations are strictly divided into distinct access levels to reduce friction for customers while protecting owner data.</p>
+
+<ul>
+  <li><strong>Admin &amp; Staff Access:</strong> Cafe owners and kitchen staff authenticate using secure credentials to access protected routes, including real-time kitchen display queues, item stock availability toggles, sales dashboards, and menu management.</li>
+  <li><strong>Customer Access:</strong> Customers interact with the web system through an intuitive digital interface. Customers are granted completely unauthenticated access to view available menu items, manage their cart, and track order status. Registered login is optional for saving multi-address preferences and view past orders.</li>
+</ul>
+
+<h3>Order Processing and Pricing Logic</h3>
+<p>The checkout workflow enforces strict validation rules to prevent data manipulation and ensure accurate transaction logging.</p>
+
+<ul>
+  <li><strong>Server-Side Price Calculation:</strong> When a customer submits an order, the system independently fetches the real-time prices of requested items directly from the database. The final order total (including 5% GST and delivery fees) is calculated using these server-side values, actively rejecting any pricing data supplied by the customer's browser.</li>
+  <li><strong>Availability Verification:</strong> The system verifies that all requested items are currently marked as in-stock. If an item is unavailable, the order is rejected and an error is shown to the customer.</li>
+  <li><strong>Order Number Assignment:</strong> Upon successful payment method selection (Online Razorpay or Cash on Delivery), the system queries the sequence entity to generate the next sequential order number specific to that order.</li>
+</ul>
+
+<div class="page-break"></div>
+
+<h3>Kitchen Queue and Lifecycle Management</h3>
+<p>Order fulfillment follows a defined state machine logic, prioritizing fairness and real-time synchronization between the kitchen and the customer.</p>
+
+<ul>
+  <li><strong>First-Come-First-Served (FCFS) Queue:</strong> The Kitchen Display interface actively listens to database updates in real time via Firestore snapshot streams. Incoming orders are strictly sorted from oldest to newest to enforce an FCFS processing rule.</li>
+  <li><strong>Status Progression:</strong> Admins and kitchen staff progress orders through a linear sequence of statuses: Placed, Preparing, Out for Delivery, and Delivered.</li>
+  <li><strong>Customer Tracking:</strong> The customer's order tracking screen synchronizes with the database in real time to fetch their specific order's status, ensuring they receive live countdown updates without needing to refresh the page or log in.</li>
+  <li><strong>Data Aggregation:</strong> Completed orders are aggregated by the system to populate the admin's sales dashboard, providing metrics such as today's total sales, revenue charts, pending order counts, and a report of the most popular items based on total quantity ordered. Order history can also be filtered, printed, and exported by the admin.</li>
+</ul>
+
+</body>
+</html>

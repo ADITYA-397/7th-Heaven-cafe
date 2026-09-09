@@ -40,7 +40,7 @@ export default function LocationSection() {
               fontWeight: 600
             }}
           >
-            Find Your Way To 7th Heaven.
+            Find Your Way To Brewline.
           </h2>
           <p 
             className="text-[#6E5D53] text-sm md:text-base font-normal max-w-xl mx-auto mt-4 leading-relaxed text-center"
@@ -69,7 +69,7 @@ export default function LocationSection() {
               }}
             >
               <iframe
-                title="7th Heaven Cafe Location Map"
+                title="Brewline Cafe Location Map"
                 src="https://maps.google.com/maps?q=16.2648896,73.7103669&hl=en&z=17&output=embed"
                 width="100%"
                 height="100%"
@@ -169,12 +169,12 @@ export default function LocationSection() {
                     Instagram
                   </span>
                   <a 
-                    href="https://instagram.com/7thheavenkankavli" 
+                    href="https://instagram.com/brewlinekankavli" 
                     target="_blank" 
                     rel="noopener noreferrer" 
                     className="block text-[#3B2E28] text-sm md:text-[15px] font-normal leading-snug hover:text-[#C08552] transition-colors"
                   >
-                    @7thheavenkankavli
+                    @brewlinekankavli
                   </a>
                 </div>
               </div>
@@ -200,12 +200,12 @@ export default function LocationSection() {
                     Facebook
                   </span>
                   <a 
-                    href="https://www.facebook.com/search/top?q=7th%20Heaven%20Cafe%20Kankavli" 
+                    href="https://www.facebook.com/search/top?q=Brewline%20Cafe%20Kankavli" 
                     target="_blank" 
                     rel="noopener noreferrer" 
                     className="block text-[#3B2E28] text-sm md:text-[15px] font-normal leading-snug hover:text-[#C08552] transition-colors"
                   >
-                    7th Heaven Cafe Kankavli
+                    Brewline Cafe Kankavli
                   </a>
                 </div>
               </div>

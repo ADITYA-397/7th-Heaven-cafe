@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Brewline Cafe: Business Logic &amp; Database Design</title>
+<style>
+  @page {
+    size: A4;
+    margin: 22mm 20mm 22mm 20mm;
+  }
+  * {
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    color: #000000;
+    background-color: #FFFFFF;
+    line-height: 1.5;
+    font-size: 10.5pt;
+    margin: 0;
+    padding: 0;
+  }
+  h1 {
+    font-size: 22pt;
+    font-weight: bold;
+    text-align: center;
+    margin: 0 0 26px 0;
+    color: #000000;
+  }
+  h2, h3 {
+    font-size: 12.5pt;
+    font-weight: bold;
+    color: #000000;
+    margin-top: 22px;
+    margin-bottom: 10px;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  p {
+    margin: 0 0 12px 0;
+    font-size: 10.5pt;
+    text-align: justify;
+  }
+  ul {
+    margin: 0 0 16px 0;
+    padding-left: 20px;
+    list-style-type: disc;
+  }
+  ol {
+    margin: 0 0 16px 0;
+    padding-left: 22px;
+  }
+  li {
+    margin-bottom: 9px;
+    font-size: 10.5pt;
+    text-align: justify;
+  }
+  li strong {
+    font-weight: bold;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+    margin-bottom: 20px;
+    font-size: 9.5pt;
+    page-break-inside: auto;
+  }
+  tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  th, td {
+    border: 1px solid #222222;
+    padding: 6.5px 9px;
+    text-align: left;
+    vertical-align: top;
+    color: #000000;
+  }
+  th {
+    font-weight: bold;
+    background-color: #FFFFFF;
+  }
+  .page-break {
+    page-break-before: always;
+    break-before: always;
+  }
+</style>
+</head>
+<body>
+
+<h1>Brewline Cafe: Business Logic Design</h1>
+
+<h3>Core Entities and Data Modeling</h3>
+<p>The system's data architecture is built on interconnected entities that track the lifecycle of an artisanal bakehouse and cafe's digital operations, customer orders, and kitchen workflows.</p>
+
+<ul>
+  <li><strong>User (Admin &amp; Customer):</strong> Represents cafe administrators, staff, or registered customers. It stores profile credentials, full name, email, phone number, saved delivery addresses, and role-based permissions (Customer, Kitchen, Delivery, Admin). Security logic mandates that all user sessions are verified using secure Firebase Authentication tokens.</li>
+  <li><strong>MenuItem:</strong> Represents an artisanal food or beverage offering (Hot Coffee, Cold Coffee, Refreshers, Milkshakes, Cupcake Milkshakes, Mug Cakes). It includes attributes such as name, category, selling price, detailed description, preparation time, and high-resolution media URLs. An <code>inStock</code> boolean field allows kitchen staff to instantly toggle availability without deleting the catalog record.</li>
+  <li><strong>Order:</strong> Represents a customer purchase transaction. It is linked to the user account (or flagged as a verified guest order) and encapsulates delivery address, payment method (Online Razorpay or Cash on Delivery), payment status, fulfillment status, timestamp, and estimated preparation/delivery time.</li>
+  <li><strong>OrderItem:</strong> Operates as a point-in-time snapshot embedded within an Order document. It records the exact item name, unit price, quantity, and selected customization addons at the precise moment of purchase to preserve historical financial integrity, regardless of subsequent menu pricing changes.</li>
+  <li><strong>OrderSequence:</strong> A synchronized sequence counter used to generate customer-facing, formatted sequential invoice numbers (e.g., <code>7H-20260303-0042</code>) to ensure human-readable tracking across kitchen slips and email invoices.</li>
+</ul>
+
+<h3>Authentication and Role-Based Access</h3>
+<p>Cafe operations are segregated into distinct access levels to eliminate friction for online ordering while safeguarding kitchen management and sensitive sales data.</p>
+
+<ul>
+  <li><strong>Admin &amp; Kitchen Access:</strong> Cafe managers and kitchen staff authenticate with administrative credentials. Administrative authorization unlocks protected interfaces, including real-time Kanban kitchen queues, item stock toggles, live revenue analytics charts, and menu catalog management.</li>
+  <li><strong>Customer &amp; Guest Access:</strong> Customers interact with the web platform through seamless browsing. Customers can either place orders as guest users or sign in with Google/Email to retain saved delivery addresses, view comprehensive order histories, and access 1-click reordering. No mandatory app installation is required.</li>
+</ul>
+
+<h3>Order Processing and Pricing Logic</h3>
+<p>The checkout workflow enforces strict server-side validation rules to prevent price tampering, guarantee inventory availability, and ensure financial accuracy.</p>
+
+<ul>
+  <li><strong>Server-Side Price Calculation:</strong> When a customer submits a cart for checkout, the system independently fetches current catalog records from the database. The subtotal, 5% GST tax, packaging/delivery fees (waived on orders exceeding ₹500), and coupon deductions are computed server-side, actively discarding any untrusted totals submitted by the browser.</li>
+  <li><strong>Availability Verification:</strong> The system verifies that each selected item is flagged as active and in-stock. If an item is sold out, the transaction is gracefully halted and the customer is notified before payment initiation.</li>
+  <li><strong>Payment Processing &amp; Verification:</strong> For online transactions, Razorpay order IDs are created server-side via <code>/api/razorpay</code>. After payment authorization, cryptographically verified signatures guarantee transaction completion before the order transitions to the active kitchen queue.</li>
+</ul>
+
+<div class="page-break"></div>
+
+<h3>Kitchen Queue and Lifecycle Management</h3>
+<p>Order fulfillment follows a deterministic state machine, prioritizing kitchen throughput, order accuracy, and real-time customer visibility.</p>
+
+<ul>
+  <li><strong>First-Come-First-Served (FCFS) Real-Time Queue:</strong> The kitchen display dashboard utilizes real-time Firestore listeners (<code>onSnapshot</code>) to receive incoming orders instantly. Active tickets are chronologically sorted to enforce an FCFS preparation sequence.</li>
+  <li><strong>Status Progression:</strong> Kitchen staff and delivery personnel transition tickets through four discrete statuses: <strong>Placed</strong> (order verified and queued), <strong>Preparing</strong> (kitchen actively brewing/baking with estimated countdown), <strong>Out for Delivery</strong> (courier dispatched with customer contact), and <strong>Delivered</strong> (handoff complete).</li>
+  <li><strong>Customer Real-Time Tracking:</strong> The customer tracking view subscribes directly to their unique order document. Status badges, preparation countdown timers, and courier progress update reactively in real time without requiring manual page reloads.</li>
+  <li><strong>Data Aggregation &amp; Post-Fulfillment:</strong> Upon reaching the Delivered state, the system automatically triggers an itemized HTML invoice email via Nodemailer and prompts the customer for an optional star rating and review. Completed transactions aggregate into daily revenue metrics for executive reporting.</li>
+</ul>
+
+<div class="page-break"></div>
+
+<h1>Brewline Cafe: Database Design</h1>
+
+<p>This document outlines the database design for the Brewline Cafe Web Platform, implemented using Google Cloud Firestore (NoSQL) and the Firebase Client/Admin SDKs. The architecture leverages document-based storage, embedding arrays for point-in-time snapshots (order items and customized addons) while maintaining clean document relationships for users, menu items, and real-time orders.</p>
+
+<h3>1. User Collection</h3>
+<p>Stores registered cafe customers, administrative staff, and delivery accounts.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 25%;">Field Name</th>
+      <th style="width: 20%;">Data Type</th>
+      <th style="width: 55%;">Constraints / Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>uid</code></td>
+      <td>String</td>
+      <td>Primary Key. Matches Firebase Authentication UID.</td>
+    </tr>
+    <tr>
+      <td><code>name</code></td>
+      <td>String</td>
+      <td>Required. Customer or staff full name.</td>
+    </tr>
+    <tr>
+      <td><code>email</code></td>
+      <td>String</td>
+      <td>Required, Unique. Email address for login and invoice delivery.</td>
+    </tr>
+    <tr>
+      <td><code>phone</code></td>
+      <td>String</td>
+      <td>Optional. Contact number for delivery coordination.</td>
+    </tr>
+    <tr>
+      <td><code>role</code></td>
+      <td>String</td>
+      <td>Required. Enum: ['customer', 'kitchen', 'delivery', 'admin']. Default: 'customer'.</td>
+    </tr>
+    <tr>
+      <td><code>photo</code></td>
+      <td>String</td>
+      <td>Optional. Profile image avatar URL.</td>
+    </tr>
+    <tr>
+      <td><code>addresses</code></td>
+      <td>Array of Objects</td>
+      <td>List of saved delivery addresses (tag, street, city, pincode, isDefault).</td>
+    </tr>
+    <tr>
+      <td><code>newsletter</code></td>
+      <td>Boolean</td>
+      <td>Default: true. Customer marketing email preference.</td>
+    </tr>
+    <tr>
+      <td><code>createdAt</code></td>
+      <td>Timestamp / ISO</td>
+      <td>Timestamp when the account record was created.</td>
+    </tr>
+    <tr>
+      <td><code>updatedAt</code></td>
+      <td>Timestamp / ISO</td>
+      <td>Timestamp when the profile was last modified.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>2. MenuItem Collection</h3>
+<p>Stores individual food and beverage products offered by Brewline Cafe.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 25%;">Field Name</th>
+      <th style="width: 20%;">Data Type</th>
+      <th style="width: 55%;">Constraints / Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>id</code></td>
+      <td>String</td>
+      <td>Primary Key. Unique Firestore auto-generated document ID.</td>
+    </tr>
+    <tr>
+      <td><code>name</code></td>
+      <td>String</td>
+      <td>Required. Name of the menu item (e.g., 'Caramel Flan Latte').</td>
+    </tr>
+    <tr>
+      <td><code>category</code></td>
+      <td>String</td>
+      <td>Required. Enum: ['Hot Coffee', 'Cold Coffee', 'Refreshers', 'Milkshake', 'Cupcake Milkshake', 'Mug Cakes'].</td>
+    </tr>
+    <tr>
+      <td><code>price</code></td>
+      <td>Number</td>
+      <td>Required. Current base selling price in INR (₹).</td>
+    </tr>
+    <tr>
+      <td><code>description</code></td>
+      <td>String</td>
+      <td>Required. Culinary description and flavor profile of the item.</td>
+    </tr>
+    <tr>
+      <td><code>image</code></td>
+      <td>String</td>
+      <td>Required. Cloud Storage URL for the item photograph.</td>
+    </tr>
+    <tr>
+      <td><code>inStock</code></td>
+      <td>Boolean</td>
+      <td>Default: true. Kitchen stock toggle to show or hide from customer menu.</td>
+    </tr>
+    <tr>
+      <td><code>isVegetarian</code></td>
+      <td>Boolean</td>
+      <td>Default: true. Dietary indicator badge.</td>
+    </tr>
+    <tr>
+      <td><code>isBestseller</code></td>
+      <td>Boolean</td>
+      <td>Default: false. Promotes item to featured recommendations.</td>
+    </tr>
+    <tr>
+      <td><code>prepTimeMinutes</code></td>
+      <td>Number</td>
+      <td>Estimated standard preparation time in minutes (default: 5-10 mins).</td>
+    </tr>
+    <tr>
+      <td><code>addons</code></td>
+      <td>Array of Objects</td>
+      <td>Optional customizable additions (e.g., Extra Espresso Shot, Oat Milk).</td>
+    </tr>
+    <tr>
+      <td><code>createdAt</code></td>
+      <td>Timestamp / ISO</td>
+      <td>Timestamp when the item was added to the catalog.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<h3>3. Order Collection</h3>
+<p>Records all customer orders, encapsulating a point-in-time snapshot of purchased items, financial breakdown, and live lifecycle status.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 25%;">Field Name</th>
+      <th style="width: 20%;">Data Type</th>
+      <th style="width: 55%;">Constraints / Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>id</code></td>
+      <td>String</td>
+      <td>Primary Key. Unique Firestore auto-generated document ID.</td>
+    </tr>
+    <tr>
+      <td><code>orderNumber</code></td>
+      <td>String</td>
+      <td>Formatted sequential order identifier (e.g., '7H-20260303-0042').</td>
+    </tr>
+    <tr>
+      <td><code>userId</code></td>
+      <td>String</td>
+      <td>Required. User UID if authenticated, or 'guest' for guest checkouts.</td>
+    </tr>
+    <tr>
+      <td><code>customerName</code></td>
+      <td>String</td>
+      <td>Required. Full name provided during checkout.</td>
+    </tr>
+    <tr>
+      <td><code>customerEmail</code></td>
+      <td>String</td>
+      <td>Required. Recipient email address for digital invoice dispatch.</td>
+    </tr>
+    <tr>
+      <td><code>customerPhone</code></td>
+      <td>String</td>
+      <td>Required. Customer contact number for delivery coordination.</td>
+    </tr>
+    <tr>
+      <td><code>customerAddress</code></td>
+      <td>String</td>
+      <td>Required for delivery orders. Street, landmark, city, and pincode.</td>
+    </tr>
+    <tr>
+      <td><code>orderType</code></td>
+      <td>String</td>
+      <td>Enum: ['delivery', 'dine_in', 'takeaway']. Default: 'delivery'.</td>
+    </tr>
+    <tr>
+      <td><code>items</code></td>
+      <td>Array of Objects</td>
+      <td>Required. Embedded sub-documents containing historical snapshots of items ordered.</td>
+    </tr>
+    <tr>
+      <td><code>items.menuItemId</code></td>
+      <td>String</td>
+      <td>Reference to MenuItem document ID.</td>
+    </tr>
+    <tr>
+      <td><code>items.name</code></td>
+      <td>String</td>
+      <td>Required. Frozen snapshot of item name at time of purchase.</td>
+    </tr>
+    <tr>
+      <td><code>items.price</code></td>
+      <td>Number</td>
+      <td>Required. Frozen snapshot of unit price at time of purchase.</td>
+    </tr>
+    <tr>
+      <td><code>items.qty</code></td>
+      <td>Number</td>
+      <td>Required. Number of units ordered.</td>
+    </tr>
+    <tr>
+      <td><code>items.selectedAddons</code></td>
+      <td>Array of Objects</td>
+      <td>Optional addons snapshot (name and addon price).</td>
+    </tr>
+    <tr>
+      <td><code>items.itemTotal</code></td>
+      <td>Number</td>
+      <td>Calculated line total: (price + sum of addons) * quantity.</td>
+    </tr>
+    <tr>
+      <td><code>subtotal</code></td>
+      <td>Number</td>
+      <td>Sum of item totals before taxes and delivery.</td>
+    </tr>
+    <tr>
+      <td><code>taxes</code></td>
+      <td>Number</td>
+      <td>Calculated 5% GST on food &amp; beverage items.</td>
+    </tr>
+    <tr>
+      <td><code>deliveryFee</code></td>
+      <td>Number</td>
+      <td>Packaging &amp; delivery fee (₹40, or ₹0 if subtotal &ge; ₹500).</td>
+    </tr>
+    <tr>
+      <td><code>discount</code></td>
+      <td>Number</td>
+      <td>Promotional coupon discount deduction.</td>
+    </tr>
+    <tr>
+      <td><code>grandTotal</code></td>
+      <td>Number</td>
+      <td>Required. Final net amount: subtotal + taxes + deliveryFee - discount.</td>
+    </tr>
+    <tr>
+      <td><code>paymentMethod</code></td>
+      <td>String</td>
+      <td>Required. Enum: ['Online (Razorpay)', 'Cash on Delivery'].</td>
+    </tr>
+    <tr>
+      <td><code>paymentStatus</code></td>
+      <td>String</td>
+      <td>Required. Enum: ['pending', 'paid', 'failed', 'refunded'].</td>
+    </tr>
+    <tr>
+      <td><code>paymentId</code></td>
+      <td>String</td>
+      <td>Optional. Razorpay transaction ID (e.g., 'pay_PAB91823749').</td>
+    </tr>
+    <tr>
+      <td><code>status</code></td>
+      <td>String</td>
+      <td>Required. Enum: ['placed', 'preparing', 'out_for_delivery', 'delivered', 'cancelled'].</td>
+    </tr>
+    <tr>
+      <td><code>placedAt</code></td>
+      <td>Timestamp / ISO</td>
+      <td>Timestamp of when the customer completed checkout.</td>
+    </tr>
+    <tr>
+      <td><code>estimatedDeliveryAt</code></td>
+      <td>Timestamp / ISO</td>
+      <td>Calculated delivery ETA for customer live countdown (default: +25 mins).</td>
+    </tr>
+    <tr>
+      <td><code>deliveredAt</code></td>
+      <td>Timestamp / ISO</td>
+      <td>Timestamp when courier marks order as successfully delivered.</td>
+    </tr>
+    <tr>
+      <td><code>rating</code></td>
+      <td>Number</td>
+      <td>Optional. Post-delivery customer rating (1 to 5 stars).</td>
+    </tr>
+    <tr>
+      <td><code>feedback</code></td>
+      <td>String</td>
+      <td>Optional. Customer written review or comment.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<h3>4. Coupon Collection</h3>
+<p>Stores promotional discount codes, validity windows, and discount rules.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 25%;">Field Name</th>
+      <th style="width: 20%;">Data Type</th>
+      <th style="width: 55%;">Constraints / Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>code</code></td>
+      <td>String</td>
+      <td>Primary Key. Uppercase alphanumeric code (e.g., 'BREWLINE20').</td>
+    </tr>
+    <tr>
+      <td><code>discountType</code></td>
+      <td>String</td>
+      <td>Required. Enum: ['percentage', 'flat'].</td>
+    </tr>
+    <tr>
+      <td><code>discountValue</code></td>
+      <td>Number</td>
+      <td>Required. Percentage amount (e.g., 20) or flat rupee amount.</td>
+    </tr>
+    <tr>
+      <td><code>maxDiscount</code></td>
+      <td>Number</td>
+      <td>Optional. Upper ceiling limit in INR for percentage discounts.</td>
+    </tr>
+    <tr>
+      <td><code>minOrderValue</code></td>
+      <td>Number</td>
+      <td>Required minimum subtotal threshold to apply coupon.</td>
+    </tr>
+    <tr>
+      <td><code>validUntil</code></td>
+      <td>Timestamp / ISO</td>
+      <td>Expiration timestamp after which the coupon is rejected.</td>
+    </tr>
+    <tr>
+      <td><code>isActive</code></td>
+      <td>Boolean</td>
+      <td>Default: true. Admin toggle to enable or deactivate campaign.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Relationships &amp; Data Integrity Rules</h3>
+<ol>
+  <li><strong>Snapshot Pattern (OrderItems):</strong> Line items within an order are embedded as frozen objects rather than referenced via dynamic foreign keys. The item name, unit price, quantity, and selected addons are captured at the moment of checkout. This guarantees that future price updates or catalog deletions by the cafe administrator will never alter historical financial transactions or customer invoices.</li>
+  <li><strong>Role &amp; Multi-Tenant Isolation:</strong> Firestore Security Rules enforce strict boundaries: customers can only read and write their own profile and order records (<code>auth.uid == userId</code> or guest order ID match), while administrative staff possess elevated privileges for status progression, catalog editing, and sales aggregation.</li>
+  <li><strong>Real-Time Synchronization:</strong> Real-time event listeners (<code>onSnapshot</code>) connect the customer order tracking view and the kitchen display board directly to Firestore document channels. Status transitions (<code>placed</code> &rarr; <code>preparing</code> &rarr; <code>out_for_delivery</code> &rarr; <code>delivered</code>) propagate instantaneously without polling overhead.</li>
+</ol>
+
+</body>
+</html>

@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Navbar from "../../components/Navbar";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
@@ -10,8 +11,7 @@ import InvoiceModal from "../../components/InvoiceModal";
 import CartDrawer from "../../components/CartDrawer";
 import ProfileDrawer from "../../components/ProfileDrawer";
 import { OrderConfirmationCard } from "../../components/order-confirmation-card";
-
-const DELIVERY_FEE = 40;
+import { calculateOrderTotals, DEFAULT_DELIVERY_FEE } from "../../lib/pricing";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -44,11 +44,8 @@ export default function CheckoutPage() {
     else if (profile?.address) setAddress(profile.address);
   }, [profile, user]);
 
-  // Pricing calculations (fallback to reference values ₹820/₹41/₹860 if cart has 0 items)
-  const cartSubtotal = cartItems.reduce((s, i) => s + (i.price || 0) * i.qty, 0);
-  const subtotal = cartItems.length > 0 ? cartSubtotal : 820;
-  const taxes = cartItems.length > 0 ? Math.round(subtotal * 0.05) : 41;
-  const total = cartItems.length > 0 ? subtotal + taxes + DELIVERY_FEE : 860;
+  // Centralized pricing calculations
+  const { subtotal, taxes, deliveryFee, total } = calculateOrderTotals(cartItems);
 
   const loadRazorpay = () =>
     new Promise((resolve) => {
@@ -71,6 +68,11 @@ export default function CheckoutPage() {
 
   const handlePay = async (e) => {
     if (e) e.preventDefault();
+    if (!cartItems || cartItems.length === 0) {
+      alert("Your cart is empty. Please add items from the menu before checking out.");
+      router.push("/#menu");
+      return;
+    }
     setIsProcessing(true);
 
     const now = new Date();
@@ -86,8 +88,9 @@ export default function CheckoutPage() {
           customerEmail: email || user?.email || "",
           customerAddress: address || "Dine-in / Pickup",
           customerPhone: phone || "",
-          items: cartItems.length > 0 ? cartItems : [{ name: "Warm Cafe Order", price: subtotal, qty: 1 }],
+          items: cartItems,
           total: subtotal,
+          deliveryFee: deliveryFee,
           grandTotal: total,
           status: "placed",
           timestamp: now.toISOString(),
@@ -119,8 +122,9 @@ export default function CheckoutPage() {
           customerEmail: email || user?.email || "",
           customerAddress: address || "Dine-in / Pickup",
           customerPhone: phone || "",
-          items: cartItems.length > 0 ? cartItems : [{ name: "Warm Cafe Order", price: subtotal, qty: 1 }],
+          items: cartItems,
           total: subtotal,
+          deliveryFee: deliveryFee,
           grandTotal: total,
           status: "placed",
           timestamp: now.toISOString(),
@@ -140,7 +144,7 @@ export default function CheckoutPage() {
         key: data.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_TYpo90mJ5uVdGk",
         amount: data.order.amount,
         currency: data.order.currency,
-        name: "7th Heaven Cafe",
+        name: "Brewline Cafe",
         description: "Order Payment",
         order_id: data.order.id,
         prefill: {
@@ -155,8 +159,9 @@ export default function CheckoutPage() {
             customerEmail: email || user?.email || "",
             customerAddress: address || "Dine-in / Pickup",
             customerPhone: phone || "",
-            items: cartItems.length > 0 ? cartItems : [{ name: "Warm Cafe Order", price: subtotal, qty: 1 }],
+            items: cartItems,
             total: subtotal,
+            deliveryFee: deliveryFee,
             grandTotal: total,
             status: "placed",
             timestamp: now.toISOString(),
@@ -184,7 +189,7 @@ export default function CheckoutPage() {
                 orderId: ref.id,
                 subtotal: od.total,
                 taxes: taxes,
-                deliveryFee: DELIVERY_FEE,
+                deliveryFee: deliveryFee,
                 total: od.grandTotal,
                 items: od.items,
                 address: od.customerAddress,
@@ -220,8 +225,9 @@ export default function CheckoutPage() {
         customerEmail: email || user?.email || "",
         customerAddress: address || "Dine-in / Pickup",
         customerPhone: phone || "",
-        items: cartItems.length > 0 ? cartItems : [{ name: "Warm Cafe Order", price: subtotal, qty: 1 }],
+        items: cartItems,
         total: subtotal,
+        deliveryFee: deliveryFee,
         grandTotal: total,
         status: "placed",
         timestamp: now.toISOString(),
@@ -283,6 +289,44 @@ export default function CheckoutPage() {
             Complete your details to place your warm order
           </p>
         </div>
+
+        {/* Empty Cart Banner */}
+        {cartItems.length === 0 && (
+          <div
+            style={{
+              backgroundColor: "#F7F2EC",
+              border: "1px solid #DCD3C6",
+              borderRadius: "16px",
+              padding: "20px 24px",
+              marginBottom: "32px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: "16px",
+            }}
+          >
+            <div>
+              <p style={{ margin: 0, fontWeight: 700, fontSize: "16px", color: "#2E2620" }}>Your cart is empty</p>
+              <p style={{ margin: "4px 0 0 0", fontSize: "14px", color: "#8A7D6E" }}>Add delicious artisan coffees and treats before checking out.</p>
+            </div>
+            <Link
+              href="/#menu"
+              style={{
+                backgroundColor: "#C08552",
+                color: "#FFFFFF",
+                padding: "10px 22px",
+                borderRadius: "9999px",
+                fontSize: "14px",
+                fontWeight: 600,
+                textDecoration: "none",
+                display: "inline-block",
+              }}
+            >
+              Browse Menu
+            </Link>
+          </div>
+        )}
 
         {/* Two-Column Layout */}
         <div
@@ -537,7 +581,7 @@ export default function CheckoutPage() {
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontSize: "14px", color: "#8A7D6E" }}>Delivery Fee</span>
-                  <span style={{ fontSize: "14px", fontWeight: 500, color: "#2E2620" }}>₹{DELIVERY_FEE}</span>
+                  <span style={{ fontSize: "14px", fontWeight: 500, color: "#2E2620" }}>₹{deliveryFee}</span>
                 </div>
               </div>
 
@@ -554,31 +598,31 @@ export default function CheckoutPage() {
               <button
                 type="button"
                 onClick={handlePay}
-                disabled={isProcessing}
+                disabled={isProcessing || cartItems.length === 0}
                 style={{
                   width: "100%",
-                  backgroundColor: isProcessing ? "#A96F3F" : "#C08552",
+                  backgroundColor: cartItems.length === 0 ? "#C5B8A8" : isProcessing ? "#A96F3F" : "#C08552",
                   color: "#FFFFFF",
                   border: "none",
                   borderRadius: "9999px",
                   padding: "14px 20px",
                   fontSize: "15px",
                   fontWeight: 600,
-                  cursor: isProcessing ? "not-allowed" : "pointer",
+                  cursor: isProcessing || cartItems.length === 0 ? "not-allowed" : "pointer",
                   display: "block",
                   boxSizing: "border-box",
                   minHeight: "48px",
-                  boxShadow: "0 2px 8px rgba(192, 133, 82, 0.25)",
+                  boxShadow: cartItems.length === 0 ? "none" : "0 2px 8px rgba(192, 133, 82, 0.25)",
                   transition: "background-color 0.2s",
                 }}
                 onMouseEnter={(e) => {
-                  if (!isProcessing) e.currentTarget.style.backgroundColor = "#A96F3F";
+                  if (!isProcessing && cartItems.length > 0) e.currentTarget.style.backgroundColor = "#A96F3F";
                 }}
                 onMouseLeave={(e) => {
-                  if (!isProcessing) e.currentTarget.style.backgroundColor = "#C08552";
+                  if (!isProcessing && cartItems.length > 0) e.currentTarget.style.backgroundColor = "#C08552";
                 }}
               >
-                {isProcessing ? "Processing..." : `Pay ₹${total}`}
+                {cartItems.length === 0 ? "Cart is Empty" : isProcessing ? "Processing..." : `Pay ₹${total}`}
               </button>
 
               {/* Secured by Razorpay */}

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import InvoiceModal from './InvoiceModal';
 import { FileText } from 'lucide-react';
@@ -54,7 +54,7 @@ export default function ProfileDrawer() {
           const q = query(collection(db, "orders"), where("userId", "==", user.uid));
           const snapshot = await getDocs(q);
           const retrieved = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          retrieved.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+          retrieved.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
           setOrders(retrieved);
         } catch (e) {
           console.error("Order fetch failed, check firebase permissions.", e);
@@ -78,7 +78,7 @@ export default function ProfileDrawer() {
     e.preventDefault();
     setStatusMsg('Saving...');
     const res = await updateProfile(formData);
-    if(res && res.success) setStatusMsg('Profile Saved!');
+    if (res && res.success) setStatusMsg('Profile Saved!');
     setTimeout(() => setStatusMsg(''), 2000);
   };
 
@@ -95,7 +95,7 @@ export default function ProfileDrawer() {
           <h3>My Profile</h3>
           <button onClick={() => setIsProfileOpen(false)} className="close-btn">&times;</button>
         </div>
-        
+
         <div className="profile-tabs">
           <button className={`tab-btn ${activeTab === 'details' ? 'active' : ''}`} onClick={() => setActiveTab('details')}>Details</button>
           <button className={`tab-btn ${activeTab === 'orders' ? 'active' : ''}`} onClick={() => setActiveTab('orders')}>Order History</button>
@@ -131,52 +131,52 @@ export default function ProfileDrawer() {
                   <option value="Other">Other</option>
                 </select>
               </div>
-              <div className="form-group" style={{flexDirection: 'row', alignItems: 'center', gap: '0.5rem'}}>
-                <input type="checkbox" name="newsletter" checked={!!formData.newsletter} onChange={handleChange} id="newsletter-check" style={{width:'auto'}} />
-                <label htmlFor="newsletter-check" style={{margin:0, fontWeight:'normal'}}>Subscribe to local cafe promos & freebies</label>
+              <div className="form-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem' }}>
+                <input type="checkbox" name="newsletter" checked={!!formData.newsletter} onChange={handleChange} id="newsletter-check" style={{ width: 'auto' }} />
+                <label htmlFor="newsletter-check" style={{ margin: 0, fontWeight: 'normal' }}>Subscribe to local cafe promos & freebies</label>
               </div>
               <div className="form-group">
                 <label>Saved Delivery Addresses</label>
                 {formData.addresses?.map((addr, idx) => (
-                    <div key={idx} style={{display:'flex', justifyContent:'space-between', alignItems:'center', background:'#f9f9f9', padding:'0.8rem', borderRadius:'8px', marginBottom:'0.5rem', border:'1px solid #eee'}}>
-                        <span style={{fontSize:'0.9rem', flex: 1}}>{addr}</span>
-                        <button type="button" onClick={() => setFormData({...formData, addresses: formData.addresses.filter((_, i) => i !== idx)})} style={{background:'none', border:'none', color:'red', cursor:'pointer', fontWeight:'bold', padding:'0 0.5rem'}}>x</button>
-                    </div>
+                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f9f9f9', padding: '0.8rem', borderRadius: '8px', marginBottom: '0.5rem', border: '1px solid #eee' }}>
+                    <span style={{ fontSize: '0.9rem', flex: 1 }}>{addr}</span>
+                    <button type="button" onClick={() => setFormData({ ...formData, addresses: formData.addresses.filter((_, i) => i !== idx) })} style={{ background: 'none', border: 'none', color: 'red', cursor: 'pointer', fontWeight: 'bold', padding: '0 0.5rem' }}>x</button>
+                  </div>
                 ))}
-                <div style={{display:'flex', gap:'0.5rem', marginTop:'0.5rem'}}>
-                    <input type="text" placeholder="Add new address..." value={newAddress} onChange={(e) => setNewAddress(e.target.value)} style={{flex:1, padding:'0.6rem'}} />
-                    <button type="button" onClick={() => { if(newAddress.trim()) { setFormData({...formData, addresses: [...formData.addresses, newAddress.trim()]}); setNewAddress(''); } }} style={{padding:'0.6rem 1rem', background:'var(--color-primary)', color:'white', border:'none', borderRadius:'8px', cursor:'pointer'}}>+</button>
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                  <input type="text" placeholder="Add new address..." value={newAddress} onChange={(e) => setNewAddress(e.target.value)} style={{ flex: 1, padding: '0.6rem' }} />
+                  <button type="button" onClick={() => { if (newAddress.trim()) { setFormData({ ...formData, addresses: [...formData.addresses, newAddress.trim()] }); setNewAddress(''); } }} style={{ padding: '0.6rem 1rem', background: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>+</button>
                 </div>
               </div>
-              <button type="submit" className="cta-button full-width" style={{marginTop: '1rem'}}>Save Setup</button>
-              <div style={{marginTop: '0.5rem', textAlign:'center', fontWeight:'bold', color:'var(--color-primary)'}}>{statusMsg}</div>
+              <button type="submit" className="cta-button full-width" style={{ marginTop: '1rem' }}>Save Setup</button>
+              <div style={{ marginTop: '0.5rem', textAlign: 'center', fontWeight: 'bold', color: 'var(--color-primary)' }}>{statusMsg}</div>
             </form>
           </div>
 
           <div className={`tab-pane ${activeTab === 'orders' ? 'active' : ''}`}>
             <div id="order-history-list">
               {orders.length === 0 ? (
-                 <p style={{textAlign:'center', color:'#999', marginTop: '2rem'}}>No previous orders found.</p>
+                <p style={{ textAlign: 'center', color: '#999', marginTop: '2rem' }}>No previous orders found.</p>
               ) : (
                 orders.map((o) => (
-                   <div key={o.id} className="order-history-card">
-                     <div className="order-history-header">
-                         <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#ccc' }}>#{o.id.slice(-8).toUpperCase()}</span>
-                         <span className="order-history-badge">{o.status}</span>
-                     </div>
-                     <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop: '0.5rem'}}>
-                        <div style={{fontSize:'1rem', fontWeight: '700'}}>₹{o.total}</div>
-                        <button 
-                            onClick={() => { setSelectedInvoiceOrder(o); setIsInvoiceOpen(true); }}
-                            style={{ background:'none', color:'var(--color-primary)', border:'1px solid var(--color-primary)', borderRadius:'6px', padding:'0.3rem 0.6rem', fontSize:'0.75rem', cursor:'pointer', display:'flex', alignItems:'center', gap:'0.3rem', fontWeight:'600'}}
-                        >
-                            <FileText size={12} /> View Bill
-                        </button>
-                     </div>
-                     <div className="order-history-items">
-                        {o.items?.map(i => `${i.name} x${i.qty}`).join(', ')}
-                     </div>
-                   </div>
+                  <div key={o.id} className="order-history-card">
+                    <div className="order-history-header">
+                      <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#ccc' }}>#{o.id.slice(-8).toUpperCase()}</span>
+                      <span className="order-history-badge">{o.status}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
+                      <div style={{ fontSize: '1rem', fontWeight: '700' }}>₹{o.total}</div>
+                      <button
+                        onClick={() => { setSelectedInvoiceOrder(o); setIsInvoiceOpen(true); }}
+                        style={{ background: 'none', color: 'var(--color-primary)', border: '1px solid var(--color-primary)', borderRadius: '6px', padding: '0.3rem 0.6rem', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', fontWeight: '600' }}
+                      >
+                        <FileText size={12} /> View Bill
+                      </button>
+                    </div>
+                    <div className="order-history-items">
+                      {o.items?.map(i => `${i.name} x${i.qty}`).join(', ')}
+                    </div>
+                  </div>
                 ))
               )}
             </div>
@@ -184,15 +184,15 @@ export default function ProfileDrawer() {
         </div>
 
         <div className="cart-footer">
-          <button onClick={handleLogout} className="cta-button full-width" style={{background:'#d9534f', boxShadow:'none'}}>Log Out</button>
+          <button onClick={handleLogout} className="cta-button full-width" style={{ background: '#d9534f', boxShadow: 'none' }}>Log Out</button>
         </div>
       </div>
 
       {/* Profile Order Invoice */}
-      <InvoiceModal 
-        isOpen={isInvoiceOpen} 
-        onClose={() => setIsInvoiceOpen(false)} 
-        order={selectedInvoiceOrder} 
+      <InvoiceModal
+        isOpen={isInvoiceOpen}
+        onClose={() => setIsInvoiceOpen(false)}
+        order={selectedInvoiceOrder}
       />
     </>
   );

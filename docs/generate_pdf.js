@@ -1,0 +1,661 @@
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+
+const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Brewline Cafe - Business Logic &amp; Database Design Specification</title>
+<style>
+  @page {
+    size: A4;
+    margin: 14mm 12mm 14mm 12mm;
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #2D241E;
+    background-color: #FFFFFF;
+    line-height: 1.45;
+    font-size: 9.5pt;
+    margin: 0;
+    padding: 0;
+  }
+
+  .cover {
+    background: linear-gradient(135deg, #241A15 0%, #3B2E28 100%);
+    color: #FFFFFF;
+    padding: 24px 28px;
+    border-radius: 10px;
+    margin-bottom: 18px;
+    border-left: 5px solid #C28751;
+  }
+
+  .cover .brand {
+    font-size: 10pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: #D4A373;
+    margin-bottom: 6px;
+  }
+
+  .cover h1 {
+    font-size: 20pt;
+    margin: 0 0 6px 0;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    color: #FAF6F0;
+  }
+
+  .cover .subtitle {
+    font-size: 10.5pt;
+    color: #E6D7C8;
+    margin: 0 0 14px 0;
+    font-weight: 400;
+  }
+
+  .cover .meta-grid {
+    display: flex;
+    justify-content: space-between;
+    font-size: 8.5pt;
+    color: #CDBBB0;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    padding-top: 10px;
+  }
+
+  .cover .meta-grid div strong {
+    color: #FFFFFF;
+  }
+
+  h2 {
+    font-size: 12.5pt;
+    color: #2A1F1A;
+    border-bottom: 1.5px solid #EAE2D8;
+    padding-bottom: 4px;
+    margin-top: 18px;
+    margin-bottom: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  h2 .num {
+    background: #C28751;
+    color: #FFFFFF;
+    font-size: 9pt;
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-weight: 700;
+  }
+
+  h3 {
+    font-size: 10.5pt;
+    color: #3B2E28;
+    margin-top: 14px;
+    margin-bottom: 6px;
+    font-weight: 600;
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  p, li {
+    font-size: 9pt;
+    color: #40352E;
+  }
+
+  ul, ol {
+    margin: 4px 0 10px 18px;
+    padding: 0;
+  }
+
+  li {
+    margin-bottom: 3px;
+  }
+
+  .card {
+    background: #FDFBF7;
+    border: 1px solid #EAE2D8;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 12px 0;
+    font-size: 8.5pt;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  th, td {
+    border: 1px solid #E6DDD3;
+    padding: 6px 8px;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    background-color: #F5EFE6;
+    color: #2A1F1A;
+    font-weight: 700;
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  tr:nth-child(even) td {
+    background-color: #FAF7F2;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 6px;
+    font-size: 7.5pt;
+    font-weight: 700;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .badge-placed { background: #E0F2FE; color: #0369A1; }
+  .badge-prep { background: #FEF3C7; color: #B45309; }
+  .badge-delivery { background: #EDE9FE; color: #6D28D9; }
+  .badge-delivered { background: #DCFCE7; color: #15803D; }
+  .badge-cancel { background: #FEE2E2; color: #B91C1C; }
+
+  pre, code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 8pt;
+  }
+
+  pre {
+    background: #211B17;
+    color: #F3ECE5;
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 6px 0 10px 0;
+    line-height: 1.4;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    border-left: 3px solid #C28751;
+  }
+
+  p code, li code, td code {
+    background: #F2ECE4;
+    color: #8C4A19;
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+
+  .formula-box {
+    background: #F5EFE6;
+    border-left: 3.5px solid #C28751;
+    padding: 8px 12px;
+    border-radius: 0 5px 5px 0;
+    margin: 8px 0;
+    font-size: 8.5pt;
+    font-weight: 500;
+    color: #2D241E;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .diagram-container {
+    background: #FAF7F2;
+    border: 1px solid #EAE2D8;
+    border-radius: 6px;
+    padding: 10px;
+    margin: 10px 0;
+    text-align: center;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .diagram-container svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .footer-meta {
+    margin-top: 18px;
+    padding-top: 8px;
+    border-top: 1px solid #EAE2D8;
+    font-size: 7.5pt;
+    color: #8C7A6B;
+    display: flex;
+    justify-content: space-between;
+    break-inside: avoid;
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER SECTION -->
+<div class="cover">
+  <div class="brand">Brewline Cafe &middot; Engineering Architecture</div>
+  <h1>Business Logic &amp; Database Design Specification</h1>
+  <div class="subtitle">Complete Technical Architecture for Next.js 16, Cloud Firestore, Firebase Auth &amp; Razorpay</div>
+  <div class="meta-grid">
+    <div><strong>Project:</strong> Brewline Cafe Web App</div>
+    <div><strong>Framework:</strong> Next.js 16 (App Router) / React 19</div>
+    <div><strong>Database:</strong> Google Cloud Firestore (NoSQL)</div>
+    <div><strong>Payments:</strong> Razorpay Gateway</div>
+    <div><strong>Version:</strong> 1.0 (Production)</div>
+  </div>
+</div>
+
+<!-- SECTION 1 -->
+<h2><span class="num">1</span> System Architecture Overview</h2>
+<p>
+  Brewline Cafe is an artisanal bakehouse and specialty cafe web platform. The platform operates on a serverless, decoupled architecture utilizing <strong>Next.js 16 App Router</strong> for presentation and API route handlers, paired with <strong>Firebase Cloud Firestore</strong> for real-time document synchronization and <strong>Razorpay</strong> for automated payments.
+</p>
+
+<div class="diagram-container">
+  <svg viewBox="0 0 760 170" width="760" height="170" xmlns="http://www.w3.org/2000/svg">
+    <rect x="5" y="5" width="750" height="160" rx="8" fill="#FFFFFF" stroke="#E2D9CF" stroke-width="1.2"/>
+    
+    <!-- Customer Client -->
+    <rect x="25" y="22" width="150" height="55" rx="6" fill="#3B2E28" stroke="#C28751" stroke-width="1.2"/>
+    <text x="100" y="46" fill="#FAF6F0" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="middle">Customer Web App</text>
+    <text x="100" y="62" fill="#D4A373" font-family="sans-serif" font-size="8.5" text-anchor="middle">Menu, Cart, Track Order</text>
+
+    <!-- Admin Client -->
+    <rect x="25" y="92" width="150" height="55" rx="6" fill="#3B2E28" stroke="#C28751" stroke-width="1.2"/>
+    <text x="100" y="116" fill="#FAF6F0" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="middle">Kitchen &amp; Admin</text>
+    <text x="100" y="132" fill="#D4A373" font-family="sans-serif" font-size="8.5" text-anchor="middle">Live Kanban &amp; Menu CRUD</text>
+
+    <!-- Next.js API Routes -->
+    <rect x="235" y="22" width="220" height="125" rx="6" fill="#F5EFE6" stroke="#D5C7B8" stroke-width="1.2"/>
+    <text x="345" y="42" fill="#2A1F1A" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="middle">Next.js API &amp; Server Engines</text>
+    
+    <rect x="255" y="52" width="180" height="24" rx="4" fill="#FFFFFF" stroke="#D5C7B8"/>
+    <text x="345" y="68" fill="#3B2E28" font-family="sans-serif" font-size="9" text-anchor="middle">/api/razorpay (Payment Creation)</text>
+    
+    <rect x="255" y="82" width="180" height="24" rx="4" fill="#FFFFFF" stroke="#D5C7B8"/>
+    <text x="345" y="98" fill="#3B2E28" font-family="sans-serif" font-size="9" text-anchor="middle">/api/send-order-email (Nodemailer)</text>
+    
+    <rect x="255" y="112" width="180" height="24" rx="4" fill="#FFFFFF" stroke="#D5C7B8"/>
+    <text x="345" y="128" fill="#3B2E28" font-family="sans-serif" font-size="9" text-anchor="middle">Pricing Integrity &amp; State Check</text>
+
+    <!-- Cloud Services -->
+    <rect x="515" y="22" width="220" height="60" rx="6" fill="#FFFFFF" stroke="#E28743" stroke-width="1.2"/>
+    <text x="625" y="44" fill="#B45309" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="middle">Cloud Firestore (DB)</text>
+    <text x="625" y="58" fill="#78350F" font-family="sans-serif" font-size="8.5" text-anchor="middle">orders, menu, users, coupons</text>
+    <text x="625" y="70" fill="#0284C7" font-family="sans-serif" font-size="8" text-anchor="middle">&bull; Real-time onSnapshot sync</text>
+
+    <!-- Storage -->
+    <rect x="515" y="92" width="220" height="55" rx="6" fill="#FFFFFF" stroke="#0284C7" stroke-width="1.2"/>
+    <text x="625" y="115" fill="#0369A1" font-family="sans-serif" font-size="10.5" font-weight="700" text-anchor="middle">Razorpay &amp; Firebase Storage</text>
+    <text x="625" y="132" fill="#0C4A6E" font-family="sans-serif" font-size="8.5" text-anchor="middle">Instant Webhooks &amp; Menu Media</text>
+
+    <!-- Connecting lines -->
+    <line x1="175" y1="50" x2="235" y2="50" stroke="#8C7A6B" stroke-width="1.2" stroke-dasharray="3,3"/>
+    <line x1="175" y1="120" x2="235" y2="120" stroke="#8C7A6B" stroke-width="1.2" stroke-dasharray="3,3"/>
+    <line x1="455" y1="50" x2="515" y2="50" stroke="#8C7A6B" stroke-width="1.2"/>
+    <line x1="455" y1="120" x2="515" y2="120" stroke="#8C7A6B" stroke-width="1.2"/>
+  </svg>
+</div>
+
+<!-- SECTION 2 -->
+<h2><span class="num">2</span> Business Logic Architecture</h2>
+
+<h3>2.1 Role-Based Access Control (RBAC)</h3>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 20%;">Role</th>
+      <th style="width: 50%;">Permissions &amp; Accessible Interfaces</th>
+      <th style="width: 30%;">Enforcement Layer</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Guest / Anonymous</strong></td>
+      <td>Browse catalog, add items to client cart, guest checkout with phone/email verification, track active orders via local storage ID tokens.</td>
+      <td>Firestore Rules: Public read on <code>/menu</code>; Read on <code>/orders</code> if <code>userId == 'guest'</code>.</td>
+    </tr>
+    <tr>
+      <td><strong>Registered Customer</strong></td>
+      <td>Save multiple delivery addresses, store profile preferences, 1-click reordering, submit post-delivery star ratings and review comments, live tracking.</td>
+      <td>Firestore Rules: Strict ownership match (<code>auth.uid == userId</code>).</td>
+    </tr>
+    <tr>
+      <td><strong>Kitchen Staff</strong></td>
+      <td>View incoming live orders in real-time on Kanban board, acknowledge receipt, update status (<code>placed</code> &rarr; <code>preparing</code>), toggle item stock.</td>
+      <td>Firestore custom user role claim <code>role: 'kitchen'</code> or <code>'admin'</code>.</td>
+    </tr>
+    <tr>
+      <td><strong>Delivery Courier</strong></td>
+      <td>Inspect customer address, view delivery instructions, transition order to <code>out_for_delivery</code> and <code>delivered</code>.</td>
+      <td>Role claim <code>role: 'delivery'</code> or <code>'admin'</code>.</td>
+    </tr>
+    <tr>
+      <td><strong>Super Admin</strong></td>
+      <td>Full CRUD over menu catalog, promotional discounts/coupons, real-time revenue analytics charts, customer support adjustments.</td>
+      <td>Role claim <code>role: 'admin'</code>; full administrative Firestore access.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>2.2 Order Lifecycle &amp; State Machine</h3>
+<p>
+  Orders strictly follow a finite state progression. Irregular state transitions (e.g. attempting to mark an order as delivered before preparing) are rejected by validation logic.
+</p>
+
+<div class="diagram-container">
+  <svg viewBox="0 0 720 70" width="720" height="70" xmlns="http://www.w3.org/2000/svg">
+    <!-- State 1 -->
+    <rect x="15" y="15" width="110" height="40" rx="20" fill="#E0F2FE" stroke="#0284C7" stroke-width="1.8"/>
+    <text x="70" y="39" fill="#0369A1" font-family="sans-serif" font-size="10.5" font-weight="700" text-anchor="middle">1. Placed</text>
+
+    <!-- Arrow 1 -->
+    <line x1="125" y1="35" x2="190" y2="35" stroke="#64748B" stroke-width="1.8"/>
+    <text x="157" y="30" fill="#64748B" font-family="sans-serif" font-size="8" text-anchor="middle">Accept</text>
+
+    <!-- State 2 -->
+    <rect x="190" y="15" width="120" height="40" rx="20" fill="#FEF3C7" stroke="#D97706" stroke-width="1.8"/>
+    <text x="250" y="39" fill="#B45309" font-family="sans-serif" font-size="10.5" font-weight="700" text-anchor="middle">2. Preparing</text>
+
+    <!-- Arrow 2 -->
+    <line x1="310" y1="35" x2="380" y2="35" stroke="#64748B" stroke-width="1.8"/>
+    <text x="345" y="30" fill="#64748B" font-family="sans-serif" font-size="8" text-anchor="middle">Packed</text>
+
+    <!-- State 3 -->
+    <rect x="380" y="15" width="145" height="40" rx="20" fill="#EDE9FE" stroke="#7C3AED" stroke-width="1.8"/>
+    <text x="452" y="39" fill="#6D28D9" font-family="sans-serif" font-size="10.5" font-weight="700" text-anchor="middle">3. Out For Delivery</text>
+
+    <!-- Arrow 3 -->
+    <line x1="525" y1="35" x2="595" y2="35" stroke="#64748B" stroke-width="1.8"/>
+    <text x="560" y="30" fill="#64748B" font-family="sans-serif" font-size="8" text-anchor="middle">Arrived</text>
+
+    <!-- State 4 -->
+    <rect x="595" y="15" width="115" height="40" rx="20" fill="#DCFCE7" stroke="#16A34A" stroke-width="1.8"/>
+    <text x="652" y="39" fill="#15803D" font-family="sans-serif" font-size="10.5" font-weight="700" text-anchor="middle">4. Delivered</text>
+  </svg>
+</div>
+
+<ul>
+  <li><span class="badge badge-placed">Placed</span>: Razorpay payment verified or Cash on Delivery committed. Order enters the kitchen real-time feed.</li>
+  <li><span class="badge badge-prep">Preparing</span>: Kitchen staff confirms order. Estimated delivery time (EDT = <code>placedAt + 25 mins</code>) is computed and countdown activates on customer client.</li>
+  <li><span class="badge badge-delivery">Out for Delivery</span>: Order is handed over to courier. Real-time ETA updates dynamically based on transit time.</li>
+  <li><span class="badge badge-delivered">Delivered</span>: Courier completes handoff. Triggers automatic delivery invoice dispatch via Nodemailer and opens feedback rating modal.</li>
+  <li><span class="badge badge-cancel">Cancelled</span>: Permitted only within 2 minutes of placement or by Admin if item is unavailable. Triggers Razorpay refund webhook.</li>
+</ul>
+
+<h3>2.3 Pricing, Cart &amp; Mathematical Integrity Rules</h3>
+<p>
+  To prevent client-side price tampering, all cart items submitted to <code>/api/razorpay</code> and checkout routes are re-calculated against active database records:
+</p>
+
+<div class="formula-box">
+  <strong>Subtotal:</strong> ₹&nbsp;= &sum; (Item Unit Price &times; Quantity + &sum; Selected Addons)<br>
+  <strong>Taxes (GST 5%):</strong> ₹&nbsp;= Round(Subtotal &times; 0.05)<br>
+  <strong>Delivery Fee:</strong> ₹40 (Waived to ₹0 if Subtotal &ge; ₹500)<br>
+  <strong>Net Payable:</strong> ₹&nbsp;= Subtotal + Taxes + Delivery Fee - Discount
+</div>
+
+<div class="card">
+  <strong>Historical Price Snapshot Principle:</strong>
+  When an order document is created, the system stores a fully-frozen JSON snapshot of each ordered item (name, unit price, addons, qty, line total). Any subsequent updates to menu item prices by the cafe manager will never retroactively modify the customer's historical order value.
+</div>
+
+<!-- SECTION 3 -->
+<h2><span class="num">3</span> Database Design (Cloud Firestore Schema)</h2>
+<p>
+  Cloud Firestore is designed as a document-oriented NoSQL schema optimized for high read velocity, low latency listener subscriptions, and zero duplicate writes.
+</p>
+
+<div class="grid-2">
+  <div>
+    <h3>3.1 Collection: <code>users</code></h3>
+    <pre><code>// Document Path: /users/{userId}
+{
+  "uid": "usr_948fbc834ad",
+  "name": "Aditya Sharma",
+  "email": "aditya@example.com",
+  "phone": "+919876543210",
+  "role": "customer", // "customer" | "kitchen" | "admin"
+  "photo": "https://...",
+  "addresses": [
+    {
+      "id": "addr_1",
+      "tag": "Home",
+      "street": "Flat 402, Sunshine Heights, MG Road",
+      "city": "Pune",
+      "pincode": "411001",
+      "isDefault": true
+    }
+  ],
+  "newsletter": true,
+  "createdAt": "2026-03-01T10:00:00.000Z"
+}</code></pre>
+  </div>
+
+  <div>
+    <h3>3.2 Collection: <code>menu</code></h3>
+    <pre><code>// Document Path: /menu/{menuItemId}
+{
+  "id": "menu_mno123",
+  "name": "Caramel Flan Latte",
+  "category": "Hot Coffee",
+  "price": 120,
+  "inStock": true,
+  "isVegetarian": true,
+  "isBestseller": true,
+  "description": "Warm latte with flan caramel.",
+  "image": "https://firebasestorage...",
+  "prepTimeMinutes": 5,
+  "addons": [
+    { "name": "Extra Espresso Shot", "price": 30 },
+    { "name": "Almond / Oat Milk", "price": 40 }
+  ],
+  "createdAt": "2026-01-15T08:00:00.000Z"
+}</code></pre>
+  </div>
+</div>
+
+<h3>3.3 Collection: <code>orders</code> (Core Transaction Entity)</h3>
+<pre><code>// Document Path: /orders/{orderId}
+{
+  "id": "ord_7h_8a7d2b",
+  "orderNumber": "7H-20260303-0042",
+  "userId": "usr_948fbc834ad",          // or "guest"
+  "customerName": "Aditya Sharma",
+  "customerEmail": "aditya@example.com",
+  "customerPhone": "+919876543210",
+  "customerAddress": "Flat 402, Sunshine Heights, MG Road, Pune - 411001",
+  "orderType": "delivery",              // "delivery" | "dine_in" | "takeaway"
+
+  // Historical Snapshot of Line Items
+  "items": [
+    { "menuItemId": "menu_mno123", "name": "Caramel Flan Latte", "price": 120, "qty": 2, "selectedAddons": [{ "name": "Extra Shot", "price": 30 }], "itemTotal": 300 },
+    { "menuItemId": "menu_ref456", "name": "Mint Mojito", "price": 99, "qty": 1, "selectedAddons": [], "itemTotal": 99 }
+  ],
+
+  // Financial Breakdown
+  "subtotal": 399,
+  "taxes": 20,                          // 5% GST
+  "deliveryFee": 40,
+  "discount": 0,
+  "total": 459,
+
+  // Payment Tracking
+  "paymentMethod": "Online (Razorpay)", // "Online (Razorpay)" | "Cash on Delivery"
+  "paymentStatus": "paid",              // "pending" | "paid" | "failed" | "refunded"
+  "paymentId": "pay_PAB91823749",
+  "razorpayOrderId": "order_ODZ19385012",
+
+  // Lifecycle Progression
+  "status": "placed",                   // "placed" | "preparing" | "out_for_delivery" | "delivered" | "cancelled"
+  "placedAt": "2026-03-03T12:00:16.000Z",
+  "estimatedDeliveryAt": "2026-03-03T12:25:16.000Z",
+  "deliveredAt": null,
+
+  // Customer Feedback
+  "rating": null,                       // 1 to 5 stars
+  "feedback": null                      // text comment
+}</code></pre>
+
+<div class="grid-2">
+  <div>
+    <h3>3.4 Collection: <code>coupons</code></h3>
+    <pre><code>// Document Path: /coupons/{code}
+{
+  "code": "BREWLINE20",
+  "discountType": "percentage",
+  "discountValue": 20,
+  "maxDiscount": 100,
+  "minOrderValue": 300,
+  "validUntil": "2026-12-31T23:59:59.000Z",
+  "isActive": true
+}</code></pre>
+  </div>
+  <div>
+    <h3>3.5 Collection: <code>analytics_daily</code></h3>
+    <pre><code>// Document Path: /analytics_daily/{YYYY-MM-DD}
+{
+  "date": "2026-03-03",
+  "totalOrders": 38,
+  "totalRevenue": 14250,
+  "avgOrderValue": 375,
+  "topSellingItem": "Caramel Flan Latte"
+}</code></pre>
+  </div>
+</div>
+
+<!-- SECTION 4 -->
+<h2><span class="num">4</span> Firestore Indexing &amp; Query Optimization</h2>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 15%;">Collection</th>
+      <th style="width: 35%;">Indexed Fields &amp; Direction</th>
+      <th style="width: 50%;">Application Query Pattern</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>orders</code></td>
+      <td><code>userId</code> (ASC) + <code>placedAt</code> (DESC)</td>
+      <td>Customer past order history in ProfileDrawer.</td>
+    </tr>
+    <tr>
+      <td><code>orders</code></td>
+      <td><code>status</code> (ASC) + <code>placedAt</code> (DESC)</td>
+      <td>Admin Kanban view filtering by active statuses.</td>
+    </tr>
+    <tr>
+      <td><code>orders</code></td>
+      <td><code>placedAt</code> (DESC)</td>
+      <td>Admin live activity stream and daily revenue chart.</td>
+    </tr>
+    <tr>
+      <td><code>menu</code></td>
+      <td><code>category</code> (ASC) + <code>price</code> (ASC)</td>
+      <td>Category filtering &amp; price-sorted catalog browsing.</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- SECTION 5 -->
+<h2><span class="num">5</span> Production Firestore Security Rules</h2>
+<pre><code>rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() { return request.auth != null; }
+    function isOwner(userId) { return isAuthenticated() && request.auth.uid == userId; }
+    function isAdmin() {
+      return isAuthenticated() && 
+        (request.auth.token.role == 'admin' || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+
+    // 1. Users: Read/Write own doc; Admin full access
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // 2. Menu: Public readable, Admin manageable
+    match /menu/{itemId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 3. Orders: Multi-tenant safety
+    match /orders/{orderId} {
+      allow read: if resource.data.userId == 'guest' || (isAuthenticated() && resource.data.userId == request.auth.uid) || isAdmin();
+      allow create: if request.resource.data.status == 'placed';
+      allow update: if (isAuthenticated() && resource.data.userId == request.auth.uid && 
+                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rating', 'feedback'])) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // 4. Coupons & Analytics
+    match /coupons/{couponId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /analytics_daily/{dateId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}</code></pre>
+
+<!-- FOOTER -->
+<div class="footer-meta">
+  <span>Brewline Cafe &middot; Confidential System Design &amp; Architecture Document</span>
+  <span>Next.js 16 &middot; Cloud Firestore &middot; Razorpay &middot; Prepared for Aditya</span>
+</div>
+
+</body>
+</html>
+`;
+
+const htmlFilePath = path.join(__dirname, 'design_spec.html');
+const pdfFilePath = path.join(__dirname, '7th_Heaven_Cafe_Design_Specification.pdf');
+const artifactPdfPath = 'C:\\Users\\Aditya\\.gemini\\antigravity-ide\\brain\\db61db96-a99a-4667-bb94-96dab88755a6\\7th_Heaven_Cafe_Design_Specification.pdf';
+
+fs.writeFileSync(htmlFilePath, htmlContent, 'utf-8');
+console.log('HTML written successfully to:', htmlFilePath);
+
+const edgePath = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+const cmd = '"' + edgePath + '" --headless --disable-gpu --run-all-compositor-stages-before-draw --no-pdf-header-footer --print-to-pdf="' + pdfFilePath + '" "' + htmlFilePath + '"';
+
+console.log('Running Edge to generate PDF...');
+execSync(cmd, { stdio: 'inherit' });
+
+console.log('PDF generated at:', pdfFilePath);
+
+// Also copy to artifact path
+fs.copyFileSync(pdfFilePath, artifactPdfPath);
+console.log('Copied to artifact path:', artifactPdfPath);
+
+const stats = fs.statSync(pdfFilePath);
+console.log('PDF File Size:', stats.size, 'bytes');

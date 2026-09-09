@@ -3,8 +3,8 @@ import { Providers } from './providers';
 import SmoothScroll from '../components/SmoothScroll';
 
 export const metadata = {
-  title: '7th Heaven | A slice of happiness',
-  description: 'Experience premium cafe vibes and delicious   in a warm, inviting atmosphere.',
+  title: 'Brewline | A slice of happiness',
+  description: 'Experience premium cafe vibes and delicious food in a warm, inviting atmosphere.',
 };
 
 export default function RootLayout({ children }) {
