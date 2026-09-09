@@ -1,4 +1,5 @@
 import './globals.css';
+import './hero-redesign.css';
 import { Providers } from './providers';
 import SmoothScroll from '../components/SmoothScroll';
 
@@ -14,7 +15,7 @@ export default function RootLayout({ children }) {
         <meta charSet="UTF-8" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;600;700;800&family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Dancing+Script:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;600;700;800&family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body>
         <SmoothScroll>

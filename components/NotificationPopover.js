@@ -162,7 +162,7 @@ export const NotificationPopover = ({
                     </div>
                     <div className="space-y-2">
                         <p className="text-[15px] font-semibold opacity-70">No new alerts</p>
-                        <p className="text-[12px] opacity-40 px-4 leading-relaxed">We'll notify you when new orders arrive or status updates occur.</p>
+                        <p className="text-[12px] opacity-40 px-4 leading-relaxed">We&apos;ll notify you when new orders arrive or status updates occur.</p>
                     </div>
                   </div>
                 ) : (

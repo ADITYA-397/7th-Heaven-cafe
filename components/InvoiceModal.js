@@ -70,14 +70,14 @@ export default function InvoiceModal({ order, isOpen, onClose }) {
                   <h1 className="text-5xl sm:text-6xl font-black tracking-[-0.03em] uppercase text-gray-900 mt-2" style={{ fontFamily: 'Georgia, serif' }}>
                     INVOICE
                   </h1>
-                  <div className="w-24 sm:w-32 flex flex-col items-end">
+                  <div className="w-32 sm:w-48 flex flex-col items-end">
                     <img 
-                      src="/logo.png" 
+                      src="/assets/invoice-logo.png" 
                       alt="Brewline Logo" 
-                      className="w-full max-w-[120px] h-auto object-contain"
+                      className="w-full max-w-[180px] h-auto object-contain"
                       onError={(e) => {
                           e.target.onerror = null;
-                          e.target.src = "https://via.placeholder.com/150x50?text=Brewline";
+                          e.target.src = "https://via.placeholder.com/180x60?text=Brewline";
                       }} 
                     />
                   </div>

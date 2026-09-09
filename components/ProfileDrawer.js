@@ -37,6 +37,7 @@ export default function ProfileDrawer() {
       if (profile.address && migratedAddresses.length === 0) {
         migratedAddresses = [profile.address];
       }
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData(prev => ({
         ...prev,
         ...profile,

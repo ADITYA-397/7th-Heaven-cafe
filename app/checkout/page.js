@@ -679,6 +679,7 @@ export default function CheckoutPage() {
           <OrderConfirmationCard
             orderId={lastOrder.id?.slice(-8).toUpperCase() || ""}
             paymentMethod={lastOrder.paymentMethod || "Online Payment"}
+            // eslint-disable-next-line react-hooks/purity
             dateTime={new Date(lastOrder.timestamp || Date.now()).toLocaleString("en-IN", {
               day: "2-digit",
               month: "short",

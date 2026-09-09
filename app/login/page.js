@@ -100,7 +100,7 @@ export default function LoginPage() {
         </button>
 
         <p style={{marginTop: '2rem', textAlign: 'center', color: '#888', fontSize: '0.9rem'}}>
-            Don't have an account? {' '}
+            Don&apos;t have an account? {' '}
             <Link href="/signup" className="auth-link" style={{fontWeight: '600'}}>
                Sign Up
             </Link>

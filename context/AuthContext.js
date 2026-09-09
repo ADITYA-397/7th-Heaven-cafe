@@ -59,6 +59,7 @@ export function AuthProvider({ children }) {
       });
     } catch(err) {
       console.error("Firebase completely blocked by browser (Incognito mode).", err);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(false);
     }
     return () => unsubscribe();
