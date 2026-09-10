@@ -96,10 +96,6 @@ export default function Hero() {
             SCROLL<br/>TO EXPLORE
           </div>
         </div>
-
-        <div className="brand-signature hero-anim">
-          Good Coffee<br/>Better People
-        </div>
       </div>
     </header>
   );
