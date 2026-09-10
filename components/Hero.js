@@ -85,18 +85,6 @@ export default function Hero() {
         </div>
 
       </div>
-
-      {/* Bottom Indicators */}
-      <div className="hero-bottom-indicators">
-        <div className="scroll-indicator hero-anim">
-          <div className="scroll-icon">
-            <div className="scroll-wheel"></div>
-          </div>
-          <div className="scroll-text">
-            SCROLL<br/>TO EXPLORE
-          </div>
-        </div>
-      </div>
     </header>
   );
 }
