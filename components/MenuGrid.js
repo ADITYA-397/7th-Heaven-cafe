@@ -1,14 +1,9 @@
 "use client";
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useCart } from '../context/CartContext';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Plus, ArrowRight } from 'lucide-react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useGSAP } from '@gsap/react';
-
-gsap.registerPlugin(ScrollTrigger);
 
 // Premium photo mapping for specific items
 
@@ -52,50 +47,24 @@ const VintageMenuItem = ({ item, addToCart }) => {
 };
 
 export default function MenuGrid() {
-  const container = useRef();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   const { addToCart } = useCart();
 
-  useGSAP(() => {
-    if (loading) return;
-
-    gsap.from('.menu-header-anim', {
-      y: 35,
-      opacity: 0,
-      duration: 0.8,
-      stagger: 0.1,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: container.current,
-        start: 'top 85%',
-        toggleActions: 'play none none reverse'
-      }
-    });
-
-    gsap.from('.menu-item-anim', {
-      y: 30,
-      opacity: 0,
-      duration: 0.6,
-      stagger: 0.05,
-      ease: 'power2.out',
-      scrollTrigger: {
-        trigger: container.current,
-        start: 'top 80%',
-        toggleActions: 'play none none none'
-      }
-    });
-
-    ScrollTrigger.refresh();
-  }, { scope: container, dependencies: [loading, isExpanded, items.length] });
-
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "menu"), (snapshot) => {
-      const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setItems(fetched);
-      setLoading(false);
-    });
+    const unsubscribe = onSnapshot(
+      collection(db, "menu"), 
+      (snapshot) => {
+        const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setItems(fetched);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error fetching menu:", error);
+        setLoading(false);
+      }
+    );
     return () => unsubscribe();
   }, []);
 
@@ -121,7 +90,7 @@ export default function MenuGrid() {
   }
 
   return (
-    <section id="menu" ref={container} className="bg-[#EAE3D9] relative overflow-hidden font-serif scroll-mt-28" style={{ padding: "96px 24px 72px 24px" }}>
+    <section id="menu" className="bg-[#EAE3D9] relative overflow-hidden font-serif scroll-mt-28" style={{ padding: "96px 24px 72px 24px" }}>
       <ScallopedDivider position="top" color="#EAE3D9" />
       <ScallopedDivider position="bottom" color="#EAE3D9" />
 
