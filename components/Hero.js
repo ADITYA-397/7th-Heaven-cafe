@@ -42,8 +42,7 @@ export default function Hero() {
           </h1>
 
           <p className="hero-body-text">
-            More than coffee — it’s a feeling. Great brews,<span className="hero-br"><br /></span>
-            breathtaking views, and even better people.
+            More than coffee — it’s a feeling. Great brews, breathtaking views, and even better people.
           </p>
 
           <div className="hero-button-group">
