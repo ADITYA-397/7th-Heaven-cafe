@@ -175,6 +175,7 @@
 /* ================= HERO REDESIGN ================= */
 .hero-cinematic {
   height: 100vh;
+  height: 100dvh;
   min-height: 700px;
   background-image: url('/assets/hero-bg.jpg');
   background-size: cover;
@@ -496,6 +497,7 @@
   .hero-bottom-indicators {
     left: 2rem;
     right: 2rem;
+    bottom: 1.5rem;
   }
 
   .hero-content-right {
@@ -546,8 +548,20 @@
 }
 
 @media (max-width: 768px) {
+  .hero-container {
+    padding-top: 5.5rem;
+    padding-bottom: 5.5rem;
+  }
+
   .hero-editorial-headline {
-    font-size: 3.5rem;
+    font-size: clamp(2.4rem, 9vw, 3.25rem);
+    margin-bottom: 1rem;
+  }
+
+  .hero-body-text {
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: 1.75rem;
   }
   
   .hero-gradient-overlay {
@@ -564,7 +578,9 @@
     justify-content: center;
   }
   
-  .brand-signature {
-    font-size: 2rem;
+  .hero-bottom-indicators {
+    bottom: 1rem;
+    left: 1.5rem;
+    right: 1.5rem;
   }
 }
